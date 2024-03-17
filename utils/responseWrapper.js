@@ -1,8 +1,8 @@
-const success = (statusCode, result) => {
+const success = (statusCode, data) => {
     return {
-        status: 'ok',
+        status: 'success',
         statusCode,
-        result
+        data
     }
 }
 

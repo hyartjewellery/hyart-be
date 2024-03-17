@@ -1,48 +1,34 @@
-const User = require('../models/User')
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
-const protect = async (req, res, next) => {
-    try {
-      
-        const accessToken = req.cookies.accessToken;
+exports.protect = async (req, res, next) => {
 
-        if (!accessToken ) {
-            return res.status(401).json({
-                status: 'error',
-                message: 'Unauthorized - Token missing'
-            });
-        }
- 
-        const decodedAccessToken = jwt.verify(accessToken, process.env.SECRET_KEY);
-        const userId = decodedAccessToken.id;
-        const userProf = await User.findOne({ _id: userId });
-        userProf.password = undefined;
-        userProf.confirmPassword = undefined;
-   
-
-        if (!userProf) {
-            return res.status(401).json({
-                status: 'error',
-                message: 'Unauthorized - User not found'
-            });
-        }
-    
-        
-        req.user = userProf;
-        next();
-    } catch (err) {
-        if (err instanceof jwt.TokenExpiredError) {
-            // Handle token expiration
-            res.clearCookie('accessToken');
-            req.session.destroy();
-            res.sendStatus(401);
-        } else {
-            console.error(err);
-            res.status(500).json({
-                status: 'error',
-                message: 'Something went wrong !!'
-            });
-        }
+    if(!req.headers || !req.headers.authorization || !req.headers.authorization.startsWith("Bearer")){
+        return res.status(401).json({
+            success: false,
+            message: 'Authorization header is required'
+        })
     }
-};
 
-module.exports = {protect}
+    const accessToken = req.headers.authorization.split(" ")[1];
+
+    try{
+        const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_PRIVATE_KEY);
+        const user = await User.findById(decoded._id);
+        if(!user){
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            })
+        }
+        req.user = user;
+        next();
+    } catch(err){
+        console.log(err);
+        return res.status(401).json({
+            success: false,
+            message: 'Token verification failed',
+            error: err.message
+        })
+    }
+}
