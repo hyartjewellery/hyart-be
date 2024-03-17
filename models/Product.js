@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
+
+  category_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    required: true
+  },
   name: {
     type: String,
     required: true
@@ -13,23 +19,19 @@ const productSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  category: {
-    type: String,
-    required: true
-  },
   image: {
-    type: String,
-    required: true
+    publicId: String,
+    url: String,
   },
   quantity: {
     type: Number,
     required: true
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
+  trending: {
+    type: Boolean,
+    default: false
   }
-});
+}, { timestamps: true });
 
 const Product = mongoose.model('Product', productSchema);
 
