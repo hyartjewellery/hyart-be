@@ -44,9 +44,18 @@ const getAllProducts = async (req, res, next) => {
     try {
         const { category_id, filter } = req.body;
         let sortCriteria = {};
+        let products ;
 
         
         let query = { category_id: category_id };
+
+        if(!filter) {
+            products = await Product.find(query);
+            return res.json({
+                success: true,
+                data: products
+            });
+        }
 
      
         filter.forEach((item) => {
@@ -62,7 +71,7 @@ const getAllProducts = async (req, res, next) => {
         });
 
         
-        let products = await Product.find(query).sort(sortCriteria);
+        products = await Product.find(query).sort(sortCriteria);
 
         res.json({
             success: true,
