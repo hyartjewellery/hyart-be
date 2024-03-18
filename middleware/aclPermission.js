@@ -3,8 +3,6 @@ const checkPermission = (requiredRole) => {
 
     return async function (req, res, next) {
 
-        console.log(req);
-
         const id = req.user.id;
         const user = await User.findById(id);
         const userRole = user.role;
