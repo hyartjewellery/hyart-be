@@ -1,10 +1,18 @@
 const Category = require('../models/Category');
 const Product = require('../models/Product');
 const User = require('../models/User');
+const Razorpay = require('razorpay');
+const Order = require('../models/Order');
+const Payment = require('../models/Payment');
 
-const getAllCategory = async (req ,res, next) => {
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_ID,
+    key_secret: process.env.RAZORPAY_SECRET_KEY
+});
 
-    try{
+const getAllCategory = async (req, res, next) => {
+
+    try {
 
         const category = await Category.find();
         res.json({
@@ -12,32 +20,32 @@ const getAllCategory = async (req ,res, next) => {
             data: category
         })
 
-    }catch (err){
-    
+    } catch (err) {
+
         res.json({
             success: false,
             message: err.message
         })
-     }
+    }
 
 }
 
-const getProductByID = async (req, res , next ) => {
+const getProductByID = async (req, res, next) => {
 
-    const {product_id} = req.body;
+    const { product_id } = req.body;
     await Product.findById(product_id)
-    .then(product => {
-        res.json({
-            success: true,
-            data: product
+        .then(product => {
+            res.json({
+                success: true,
+                data: product
+            })
         })
-    })
-    .catch(err => {
-        res.json({
-            success: false,
-            message: err.message
+        .catch(err => {
+            res.json({
+                success: false,
+                message: err.message
+            })
         })
-    })
 
 }
 
@@ -45,12 +53,12 @@ const getAllProducts = async (req, res, next) => {
     try {
         const { category_id, filter } = req.body;
         let sortCriteria = {};
-        let products ;
+        let products;
 
-        
+
         let query = { category_id: category_id };
 
-        if(!filter) {
+        if (!filter) {
             products = await Product.find(query);
             return res.json({
                 success: true,
@@ -58,12 +66,12 @@ const getAllProducts = async (req, res, next) => {
             });
         }
 
-     
+
         filter.forEach((item) => {
             let field = item.field;
             let sortBy = item.sortBy;
 
-        
+
             if (sortBy === "asc") {
                 sortCriteria[field] = 1;
             } else if (sortBy === "desc") {
@@ -71,7 +79,7 @@ const getAllProducts = async (req, res, next) => {
             }
         });
 
-        
+
         products = await Product.find(query).sort(sortCriteria);
 
         res.json({
@@ -87,70 +95,118 @@ const getAllProducts = async (req, res, next) => {
 };
 
 
-const placeOrder = async ( req, res , next) => {
-    
-        try{
-            const { product_id, quantity } = req.body;
-            const user_id = req.user._id;
-    
-            const user = await User.findById(user_id);
-    
-            if(!user){
-                return res.json({
-                    success: false,
-                    message: 'User not found'
-                })
-            }
-    
+const placeOrder = async (req, res, next) => {
+    try {
+        const { products } = req.body;
+        console.log(products); // Assuming products is an array of objects containing product_id and quantity
+        const user_id = req.user._id;
+
+        const user = await User.findById(user_id);
+        if (!user) {
+            return res.json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        console.log("CROSS")
+        let totalAmount = 0;
+
+        for (const { product_id, quantity } of products) {
             const product = await Product.findById(product_id);
-    
-            if(!product){
+            console.log("PROD",product);
+            if (!product) {
                 return res.json({
                     success: false,
                     message: 'Product not found'
-                })
+                });
             }
-    
-            if(product.quantity < quantity){
+
+            if (product.quantity < quantity) {
                 return res.json({
                     success: false,
-                    message: 'Product out of stock'
-                })
+                    message: `Product '${product.name}' is out of stock`
+                });
             }
-    
-            await User.findByIdAndUpdate(user_id, { $push: { orders: { product_id, quantity } } });
-    
-            res.json({
-                success: true,
-                message: 'Order placed successfully'
-            })
-    
-        }catch(err){
-            res.json({
-                success: false,
-                message: err.message
-            })
+
+            console.log("CROSS 2");
+            totalAmount += product.price * quantity;
+            console.log(totalAmount);
         }
-    
-}
 
-const addToWishlist = async ( req, res, next) => {
+        console.log("OUTTTT")
 
-    try{
+        const order = {
+            user_id: user_id,
+            totalAmount: totalAmount,
+            status: 'pending',
+            products: products.map(({ product_id, quantity }) => ({ product_id, quantity })),
+        };
 
-        const {  product_id } = req.body;
+        console.log("ORDER",order);
+
+        const createdOrder = await Order.create(order);
+
+        console.log(createdOrder);
+
+        console.log("CROSS3");
+
+        // Decrease product quantities in the database
+        for (const { product_id, quantity } of products) {
+            await Product.findByIdAndUpdate(product_id, { $inc: { quantity: -quantity } });
+        }
+        console.log("CROSS xxxx")
+
+        // Create Razorpay order
+        const razorpayOrder = await razorpay.orders.create({
+            amount: totalAmount * 100, // Razorpay accepts amount in paise
+            currency: 'INR',
+            receipt: createdOrder._id.toString(), // Receipt ID, can be order ID from your database
+            payment_capture: 1 // Auto capture payment
+        });
+
+        console.log("CROSS yyyy")
+
+        // Store payment details in your database
+        await Payment.create({
+            order_id: createdOrder._id,
+            amount: totalAmount,
+            status: 'pending', // Payment status initially pending until success
+            paymentMethod: 'razorpay', // Assuming payment method is Razorpay
+        });
+
+        console.log("CROSSSSSSSS")
+        res.json({
+            success: true,
+            message: 'Order placed successfully',
+            razorpayOrder: razorpayOrder // Return Razorpay order details to the client
+        });
+    } catch (err) {
+        res.json({
+            success: false,
+            message: err.message
+        });
+    }
+};
+
+
+const addToWishlist = async (req, res, next) => {
+
+    try {
+
+        const { product_id } = req.body;
         const user_id = req.user._id;
 
         const user = await User.findById(user_id);
 
-        if(!user){
+        if (!user) {
             return res.json({
                 success: false,
                 message: 'User not found'
             })
         }
 
-        if(user.wishList.includes(product_id)){
+        if (user.wishList.includes(product_id)) {
             return res.json({
                 success: false,
                 message: 'Product already in wishlist'
@@ -164,7 +220,7 @@ const addToWishlist = async ( req, res, next) => {
             message: 'Product added to wishlist'
         })
 
-    } catch(err){
+    } catch (err) {
         res.json({
             success: false,
             message: err.message
@@ -174,7 +230,7 @@ const addToWishlist = async ( req, res, next) => {
 
 const getWishList = async (req, res, next) => {
 
-    try{
+    try {
 
         const user_id = req.user._id;
 
@@ -185,7 +241,7 @@ const getWishList = async (req, res, next) => {
             data: data.wishList
         })
 
-    }catch(err){
+    } catch (err) {
         res.json({
             success: false,
             message: err.message
@@ -195,21 +251,21 @@ const getWishList = async (req, res, next) => {
 
 const removeFromWishList = async (req, res, next) => {
 
-    try{
+    try {
 
         const { product_id } = req.body;
         const user_id = req.user._id;
 
         const user = await User.findById(user_id);
 
-        if(!user){
+        if (!user) {
             return res.json({
                 success: false,
                 message: 'User not found'
             })
         }
 
-        if(!user.wishList.includes(product_id)){
+        if (!user.wishList.includes(product_id)) {
             return res.json({
                 success: false,
                 message: 'Product not in wishlist'
@@ -223,7 +279,7 @@ const removeFromWishList = async (req, res, next) => {
             message: 'Product removed from wishlist'
         })
 
-    }catch (err){
+    } catch (err) {
         res.json({
             success: false,
             message: err.message
@@ -232,11 +288,12 @@ const removeFromWishList = async (req, res, next) => {
 }
 
 
-module.exports ={
+module.exports = {
     getAllCategory,
     getProductByID,
     getAllProducts,
     addToWishlist,
     getWishList,
-    removeFromWishList
+    removeFromWishList,
+    placeOrder
 }

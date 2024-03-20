@@ -7,7 +7,7 @@ const cloudinary = require('cloudinary').v2;
 const cors = require('cors');
 const PORT = process.env.PORT;
 const app = express();
-const Razorpay = require('razorpay');
+// const Razorpay = require('razorpay');
 
 console.log(PORT);
 
@@ -20,10 +20,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
- const instance = new Razorpay({
-    key_id: process.env.RAZORPAY_ID,
-    key_secret: process.env.RAZORPAY_SECRET_KEY
-});
+
 
 app.use(express.json());
 app.use(morgan('common'));
