@@ -7,16 +7,22 @@ const cloudinary = require('cloudinary').v2;
 const cors = require('cors');
 const PORT = process.env.PORT;
 const app = express();
+const Razorpay = require('razorpay');
 
 console.log(PORT);
 
 dbConnect();
 
 
-cloudinary.config({ 
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
-    api_key: process.env.CLOUDINARY_API_KEY, 
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+ const instance = new Razorpay({
+    key_id: process.env.RAZORPAY_ID,
+    key_secret: process.env.RAZORPAY_SECRET_KEY
 });
 
 app.use(express.json());
@@ -37,8 +43,8 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/user', require('./routes/user'));
 
-app.get('/', function(req, res) {
-    res.send(`Hello World, running on port ${PORT}`); 
+app.get('/', function (req, res) {
+    res.send(`Hello World, running on port ${PORT}`);
 });
 
 app.listen(PORT, () => {

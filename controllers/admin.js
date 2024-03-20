@@ -2,6 +2,7 @@ const Category = require('../models/Category');
 const Product = require('../models/Product');
 const cloudinary = require('cloudinary').v2;
 
+
 const createCategory = async (req, res) => {
 
     try {
@@ -73,9 +74,32 @@ const createProduct = async (req, res) => {
     }
 };
 
+const deleteProduct = async (req, res) => {
 
+    try {
+        const { product_id } = req.body;
+        const product = await Product.findByIdAndDelete(product_id);
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: 'Product deleted successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+
+}
 
 module.exports = {
     createCategory,
-    createProduct
+    createProduct,
+    deleteProduct
 }

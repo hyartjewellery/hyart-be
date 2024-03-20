@@ -86,6 +86,54 @@ const getAllProducts = async (req, res, next) => {
     }
 };
 
+
+const placeOrder = async ( req, res , next) => {
+    
+        try{
+            const { product_id, quantity } = req.body;
+            const user_id = req.user._id;
+    
+            const user = await User.findById(user_id);
+    
+            if(!user){
+                return res.json({
+                    success: false,
+                    message: 'User not found'
+                })
+            }
+    
+            const product = await Product.findById(product_id);
+    
+            if(!product){
+                return res.json({
+                    success: false,
+                    message: 'Product not found'
+                })
+            }
+    
+            if(product.quantity < quantity){
+                return res.json({
+                    success: false,
+                    message: 'Product out of stock'
+                })
+            }
+    
+            await User.findByIdAndUpdate(user_id, { $push: { orders: { product_id, quantity } } });
+    
+            res.json({
+                success: true,
+                message: 'Order placed successfully'
+            })
+    
+        }catch(err){
+            res.json({
+                success: false,
+                message: err.message
+            })
+        }
+    
+}
+
 const addToWishlist = async ( req, res, next) => {
 
     try{
