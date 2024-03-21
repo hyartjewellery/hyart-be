@@ -98,7 +98,7 @@ const getAllProducts = async (req, res, next) => {
 const placeOrder = async (req, res, next) => {
     try {
         const { products } = req.body;
-        console.log(products); // Assuming products is an array of objects containing product_id and quantity
+
         const user_id = req.user._id;
 
         const user = await User.findById(user_id);
@@ -134,7 +134,7 @@ const placeOrder = async (req, res, next) => {
             console.log(totalAmount);
         }
 
-        console.log("OUTTTT")
+        console.log("TOTAL AMT", totalAmount)
 
         const order = {
             user_id: user_id,
@@ -143,14 +143,10 @@ const placeOrder = async (req, res, next) => {
             products: products.map(({ product_id, quantity }) => ({ product_id, quantity })),
         };
 
-        console.log("ORDER",order);
-
+      
         const createdOrder = await Order.create(order);
 
-        console.log(createdOrder);
-
-        console.log("CROSS3");
-
+      
         // Decrease product quantities in the database
         for (const { product_id, quantity } of products) {
             await Product.findByIdAndUpdate(product_id, { $inc: { quantity: -quantity } });
