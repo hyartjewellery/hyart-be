@@ -1,6 +1,8 @@
 const Category = require('../models/Category');
 const Product = require('../models/Product');
 const cloudinary = require('cloudinary').v2;
+const Query = require('../models/Query');
+const Coupon = require('../models/Coupon');
 
 
 const createCategory = async (req, res) => {
@@ -98,8 +100,53 @@ const deleteProduct = async (req, res) => {
 
 }
 
+const getQueries = async (req, res) => {
+    try {
+        const queries = await Query.find();
+        res.json({
+            success: true,
+            data: queries
+        });
+    } catch (err) {
+        res.json({
+            success: false,
+            message: err.message
+        });
+    }
+
+}
+
+const createCoupon = async (req, res) => {
+    try {
+        const { code, discountType, discountAmount, validFrom, validUntil, maxUses } = req.body;
+
+        const existingCoupon = await Coupon.findOne({ code });
+        if (existingCoupon) {
+            return res.status(400).json({ success: false, message: 'Coupon code already exists' });
+        }
+
+    
+        const coupon = await Coupon.create({
+            code,
+            discountType,
+            discountAmount,
+            validFrom,
+            validUntil,
+            maxUses
+        });
+
+        res.status(201).json({ success: true, data: coupon });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+};
+
+
 module.exports = {
     createCategory,
     createProduct,
-    deleteProduct
+    deleteProduct,
+    getQueries,
+    createCoupon
 }

@@ -4,6 +4,10 @@ const User = require('../models/User');
 const Razorpay = require('razorpay');
 const Order = require('../models/Order');
 const Payment = require('../models/Payment');
+const Query = require('../models/Query');
+const userConfirmationTemplate = require('../utils/template/userConfirmation');
+const contactUsTemplate = require('../utils/template/contactUs');
+const mailSender = require('../utils/mailSender');
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_ID,
@@ -278,6 +282,69 @@ const removeFromWishList = async (req, res, next) => {
     }
 }
 
+const contactUs = async (req, res, next) => {
+    try {
+        const { email, subject, message } = req.body;
+        const admin = process.env.MAIL_USERNAME;
+
+        if (!email || !subject || !message) {
+            return res.json({
+                success: false,
+                message: 'Please fill all the fields'
+            });
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: 'Invalid email address' });
+        }
+
+
+        const user_id = req.user._id;
+        const user = await User.findById(user_id);
+        const user_name = user.name;
+
+        if (!user) {
+            return res.json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        if(email != user.email) {
+            return res.json({
+                success: false,
+                message: 'You are not authorized to send message on behalf of other user'
+            });
+        }
+        const name = req.user.name; 
+        const userConfirmationBody = userConfirmationTemplate(name);
+        await mailSender(email, 'Contact Form Submission Confirmation', userConfirmationBody);
+        await mailSender(admin,'User Query', contactUsTemplate(email, user_name, subject, message));;
+
+        const query = {
+            name: user_name,
+            email: email,
+            subject: subject,
+            message: message
+        };
+
+        await Query.create(query);
+
+        res.json({
+            success: true,
+            message: 'Message sent successfully'
+        });
+    } catch (err) {
+        res.json({
+            success: false,
+            message: err.message
+        });
+    }
+};
+
+
+
 
 module.exports = {
     getAllCategory,
@@ -286,5 +353,6 @@ module.exports = {
     addToWishlist,
     getWishList,
     removeFromWishList,
-    placeOrder
+    placeOrder,
+    contactUs
 }
