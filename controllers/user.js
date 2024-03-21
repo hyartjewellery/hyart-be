@@ -109,7 +109,7 @@ const placeOrder = async (req, res, next) => {
             });
         }
 
-        console.log("CROSS")
+
         let totalAmount = 0;
 
         for (const { product_id, quantity } of products) {
@@ -134,8 +134,6 @@ const placeOrder = async (req, res, next) => {
             console.log(totalAmount);
         }
 
-        console.log("TOTAL AMT", totalAmount)
-
         const order = {
             user_id: user_id,
             totalAmount: totalAmount,
@@ -151,7 +149,7 @@ const placeOrder = async (req, res, next) => {
         for (const { product_id, quantity } of products) {
             await Product.findByIdAndUpdate(product_id, { $inc: { quantity: -quantity } });
         }
-        console.log("CROSS xxxx")
+      
 
         // Create Razorpay order
         const razorpayOrder = await razorpay.orders.create({
@@ -161,8 +159,6 @@ const placeOrder = async (req, res, next) => {
             payment_capture: 1 // Auto capture payment
         });
 
-        console.log("CROSS yyyy")
-
         // Store payment details in your database
         await Payment.create({
             order_id: createdOrder._id,
@@ -171,7 +167,6 @@ const placeOrder = async (req, res, next) => {
             paymentMethod: 'razorpay', // Assuming payment method is Razorpay
         });
 
-        console.log("CROSSSSSSSS")
         res.json({
             success: true,
             message: 'Order placed successfully',

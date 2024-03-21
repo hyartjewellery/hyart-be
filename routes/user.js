@@ -10,6 +10,7 @@ router.post('/all-products',protect.protect, checkPermission(["user"]), userCont
 router.post('/add-to-wishlist',protect.protect, checkPermission(["user"]), userController.addToWishlist);
 router.post('/remove-from-wishlist',protect.protect, checkPermission(["user"]), userController.removeFromWishList);
 router.post('/get-wishlist',protect.protect, checkPermission(["user"]), userController.getWishList);
-router.post('/place-order', protect.protect, checkPermission(["user"]), userController.placeOrder ,paymentController.paymentVerification); 
+router.post('/place-order', protect.protect, checkPermission(["user"]), userController.placeOrder); 
+router.post('/paymentVerification',protect.protect, checkPermission(["user"]), paymentController.paymentVerification);
 
 module.exports = router;
