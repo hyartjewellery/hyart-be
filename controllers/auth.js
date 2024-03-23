@@ -9,8 +9,6 @@ const passwordUpdated = require('../utils/template/passwordUpdate');
 const welcomeEmail = require('../utils/template/welcome');
 const crypto = require('crypto');
 
-
-
 const sendOtp = async (req, res) => {
     try {
         const { email } = req.body;
@@ -170,10 +168,7 @@ const login = async (req, res) => {
             secure: true
         })
 
-        user.password = undefined;
-        user.confirmPassword = undefined;
-
-        return res.send(success(200,{ user, accessToken}))
+        return res.send(success(200, {accessToken}))
 
     } catch (e) {
         return res.send(error(500, e.message));
