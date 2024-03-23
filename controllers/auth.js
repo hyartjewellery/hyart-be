@@ -10,6 +10,7 @@ const welcomeEmail = require('../utils/template/welcome');
 const crypto = require('crypto');
 
 
+
 const sendOtp = async (req, res) => {
     try {
         const { email } = req.body;
@@ -397,12 +398,40 @@ const updatePassword = async (req, res) => {
     }
 }
 
+const getProfile = async (req, res) => {
+
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+        user.password = undefined;
+        user.confirmPassword = undefined;
+
+        res.status(200).json({
+            success: true,
+            data: user
+        });
+
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: err.message
+        });
+    }
+}
 
 
 module.exports = {
     sendOtp,
     register,
     login,
+    getProfile,
     forgotPassword,
     resetPassword,
     updatePassword,
