@@ -14,38 +14,37 @@ const sendOtp = async (req, res) => {
     try {
         const { email } = req.body;
 
-        console.log(email);
+       
         if (!email) {
             return res.send(error(400, 'Email is required'));
         }
 
         const user = await User.findOne({ email });
-        console.log(user);
+     
 
         if (user) {
             return res.send(error(409, 'User is already registered'));
         }
 
-        console.log("CROSS")
 
         const otp = otpGenerator.generate(6, {
             upperCaseAlphabets: false,
             specialChars: false,
             lowerCaseAlphabets: false
         });
-        console.log("OTP generated", otp);
+        
 
         const result = await OTP.findOne({ otp });
 
-        console.log(result);
+  
         while (result) {
-            console.log("OTP already exists");
+         
             otp = otpGenerator.generate(6, {
                 upperCaseAlphabets: false,
                 specialChars: false,
                 lowerCaseAlphabets: false
             });
-            console.log("OTP generated", otp);
+           
         }
 
         const newOtp = new OTP({
@@ -58,7 +57,7 @@ const sendOtp = async (req, res) => {
         return res.send(success(200, 'OTP sent successfully'));
 
     } catch (err) {
-        console.log(err);
+   
         return res.send(error(500, err.message));
     }
 }
@@ -66,29 +65,27 @@ const sendOtp = async (req, res) => {
 const register = async (req, res) => {
     try {
         const { name, email, password, confirmPassword, otp, phoneNumber, role } = req.body;
-        console.log(name, email, password, confirmPassword, otp, phoneNumber);
+        
 
         if (!name || !email || !password || !confirmPassword || !phoneNumber || !otp) {
             return res.send(error(400, 'All fields are required'));
         }
 
-        console.log("cross1");
+   
 
         if (password !== confirmPassword) {
             return res.send(error(400, 'Passwords do not match'));
         }
 
-        console.log("cross2");
+    
 
         const oldUser = await User.findOne({ email });
 
-        console.log(oldUser, "user");
 
         if (oldUser) {
             return res.send(error(409, 'User is already registered'));
         }
 
-        console.log("CROSS3")
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
@@ -102,17 +99,17 @@ const register = async (req, res) => {
         }
 
         const response = await OTP.findOne({ email }).sort({ createdAt: -1 });
-        console.log("CROSS4")
+     
         if (!response) {
             return res.send(error(404, 'OTP not found'));
         }
-        console.log("CROSS5")
+       
 
         if (response.otp !== otp) {
             return res.send(error(403, 'Invalid OTP'));
         }
 
-        console.log("CROSS6")
+   
 
         const hashedPassword = await bcrypt.hash(password, 10);
         const hashedConfirmPassword = await bcrypt.hash(confirmPassword, 10);
@@ -127,11 +124,11 @@ const register = async (req, res) => {
             role
         })
 
-        console.log("CROSS7")
+     
 
         await mailSender(user.email, 'Welcome to our platform', welcomeEmail(user.name));
 
-        console.log("CROSS8")
+        
 
         user.password = undefined;
         user.confirmPassword = undefined;
