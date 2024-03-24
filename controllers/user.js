@@ -8,6 +8,7 @@ const Query = require('../models/Query');
 const userConfirmationTemplate = require('../utils/template/userConfirmation');
 const contactUsTemplate = require('../utils/template/contactUs');
 const mailSender = require('../utils/mailSender');
+const { error, success } = require('../utils/responseWrapper');
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_ID,
@@ -19,17 +20,11 @@ const getAllCategory = async (req, res, next) => {
     try {
 
         const category = await Category.find();
-        res.json({
-            success: true,
-            data: category
-        })
+        if(!category) return res.send(error(404, 'Not Found'));
+        return res.send(success(200,category));
 
     } catch (err) {
-
-        res.json({
-            success: false,
-            message: err.message
-        })
+        return res.send(error(404, err.message));
     }
 
 }
@@ -39,16 +34,10 @@ const getProductByID = async (req, res, next) => {
     const { product_id } = req.body;
     await Product.findById(product_id)
         .then(product => {
-            res.json({
-                success: true,
-                data: product
-            })
+            return res.send(success(200,product));
         })
         .catch(err => {
-            res.json({
-                success: false,
-                message: err.message
-            })
+            return res.send(error(404, err.message));
         })
 
 }
@@ -64,10 +53,7 @@ const getAllProducts = async (req, res, next) => {
 
         if (!filter) {
             products = await Product.find(query);
-            return res.json({
-                success: true,
-                data: products
-            });
+            return res.send(success(200,products));
         }
 
 
@@ -86,15 +72,9 @@ const getAllProducts = async (req, res, next) => {
 
         products = await Product.find(query).sort(sortCriteria);
 
-        res.json({
-            success: true,
-            data: products
-        });
+        return res.send(success(200,products));
     } catch (err) {
-        res.json({
-            success: false,
-            message: err.message
-        });
+        return res.send(error(404, err.message));
     }
 };
 
@@ -107,10 +87,7 @@ const placeOrder = async (req, res, next) => {
 
         const user = await User.findById(user_id);
         if (!user) {
-            return res.json({
-                success: false,
-                message: 'User not found'
-            });
+            return res.send(error(404, 'User not found'));
         }
 
 
@@ -118,24 +95,18 @@ const placeOrder = async (req, res, next) => {
 
         for (const { product_id, quantity } of products) {
             const product = await Product.findById(product_id);
-            console.log("PROD",product);
+      
             if (!product) {
-                return res.json({
-                    success: false,
-                    message: 'Product not found'
-                });
+                return res.send(error(404, 'Product not found'));
             }
 
             if (product.quantity < quantity) {
-                return res.json({
-                    success: false,
-                    message: `Product '${product.name}' is out of stock`
-                });
+                return res.send(error(404, 'Quantity not available'));
             }
 
-            console.log("CROSS 2");
+       
             totalAmount += product.price * quantity;
-            console.log(totalAmount);
+           
         }
 
         const order = {
@@ -171,16 +142,10 @@ const placeOrder = async (req, res, next) => {
             paymentMethod: 'razorpay', // Assuming payment method is Razorpay
         });
 
-        res.json({
-            success: true,
-            message: 'Order placed successfully',
-            razorpayOrder: razorpayOrder // Return Razorpay order details to the client
-        });
+      
+        return res.send(success(200,razorpayOrder));
     } catch (err) {
-        res.json({
-            success: false,
-            message: err.message
-        });
+        return res.send(error(404, err.message));
     }
 };
 
@@ -195,31 +160,19 @@ const addToWishlist = async (req, res, next) => {
         const user = await User.findById(user_id);
 
         if (!user) {
-            return res.json({
-                success: false,
-                message: 'User not found'
-            })
+           return res.send(error(404, 'User not found'));
         }
 
         if (user.wishList.includes(product_id)) {
-            return res.json({
-                success: false,
-                message: 'Product already in wishlist'
-            })
+            return res.send(error(404, 'Product already in wishlist'));
         }
 
         await User.findByIdAndUpdate(user_id, { $push: { wishList: product_id } });
 
-        res.json({
-            success: true,
-            message: 'Product added to wishlist'
-        })
+        return res.send(success(200,'Product added to wishlist'));
 
     } catch (err) {
-        res.json({
-            success: false,
-            message: err.message
-        })
+        return res.send(error(404, err.message));
     }
 }
 
@@ -231,16 +184,14 @@ const getWishList = async (req, res, next) => {
 
         const data = await User.findById(user_id).populate('wishList');
 
-        res.json({
-            success: true,
-            data: data.wishList
-        })
+        if (!data) {
+            return res.send(error(404, 'User not found'));
+        }
+
+        return res.send(success(200,data.wishList));
 
     } catch (err) {
-        res.json({
-            success: false,
-            message: err.message
-        })
+        return res.send(error(404, err.message));
     }
 }
 
@@ -254,31 +205,19 @@ const removeFromWishList = async (req, res, next) => {
         const user = await User.findById(user_id);
 
         if (!user) {
-            return res.json({
-                success: false,
-                message: 'User not found'
-            })
+            return res.send(error(404, 'User not found'));
         }
 
         if (!user.wishList.includes(product_id)) {
-            return res.json({
-                success: false,
-                message: 'Product not in wishlist'
-            })
+            return res.send(error(404, 'Product not in wishlist'));
         }
 
         await User.findByIdAndUpdate(user_id, { $pull: { wishList: product_id } });
 
-        res.json({
-            success: true,
-            message: 'Product removed from wishlist'
-        })
+        return res.send(success(200,'Product removed from wishlist'));
 
     } catch (err) {
-        res.json({
-            success: false,
-            message: err.message
-        })
+        return res.send(error(404, err.message));
     }
 }
 
@@ -288,15 +227,13 @@ const contactUs = async (req, res, next) => {
         const admin = process.env.MAIL_USERNAME;
 
         if (!email || !subject || !message) {
-            return res.json({
-                success: false,
-                message: 'Please fill all the fields'
-            });
+            return res.send(error(404, 'All fields are required'));
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            return res.status(400).json({ message: 'Invalid email address' });
+            return res.send(error(404, 'Invalid email'));
+
         }
 
 
@@ -305,17 +242,11 @@ const contactUs = async (req, res, next) => {
         const user_name = user.name;
 
         if (!user) {
-            return res.json({
-                success: false,
-                message: 'User not found'
-            });
+            return res.send(error(404, 'User not found'));
         }
 
         if(email != user.email) {
-            return res.json({
-                success: false,
-                message: 'You are not authorized to send message on behalf of other user'
-            });
+            return res.send(error(404, 'Email does not match with the logged in user'));
         }
         const name = req.user.name; 
         const userConfirmationBody = userConfirmationTemplate(name);
@@ -331,15 +262,9 @@ const contactUs = async (req, res, next) => {
 
         await Query.create(query);
 
-        res.json({
-            success: true,
-            message: 'Message sent successfully'
-        });
+        return res.send(success(200,'Query submitted successfully'));
     } catch (err) {
-        res.json({
-            success: false,
-            message: err.message
-        });
+        return res.send(error(404, err.message));
     }
 };
 

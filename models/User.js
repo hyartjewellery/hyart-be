@@ -22,12 +22,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  role:{
+  role: {
     type: String,
     enum: ['user', 'admin'],
     default: 'user'
   },
-  order:[
+  order: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Order'
@@ -39,6 +39,12 @@ const userSchema = new mongoose.Schema({
       ref: 'Product'
     }
   ],
+  userAvatar: {
+
+      publicId: String,
+      url: String,
+    
+  },
   resetPasswordToken: String,
   resetPasswordExpire: Date
 });
