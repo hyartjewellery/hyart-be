@@ -1,5 +1,6 @@
 const Payment = require('../models/Payment');
 const crypto = require('crypto');
+const { error, success } = require('../utils/responseWrapper');
 
 const paymentVerification = async (req, res, next) => {
 
@@ -37,12 +38,12 @@ const paymentVerification = async (req, res, next) => {
             return res.redirect(`http://localhost:3000/payment-success?reference=${razorpay_payment_id}`);
         } catch (error) {
            
-            console.error('Database error:', error);
-            return res.status(500).json({ success: false, message: 'Internal server error' });
+            return res.send(error(500, error.message));
         }
     } else {
         
-        res.json({ success: false, message: 'Payment failed' });
+     
+        return res.send(error(500, 'Internal server error'));
     }
 };
 

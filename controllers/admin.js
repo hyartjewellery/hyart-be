@@ -3,6 +3,7 @@ const Product = require('../models/Product');
 const cloudinary = require('cloudinary').v2;
 const Query = require('../models/Query');
 const Coupon = require('../models/Coupon');
+const { error, success } = require('../utils/responseWrapper');
 
 
 const createCategory = async (req, res) => {
@@ -12,10 +13,7 @@ const createCategory = async (req, res) => {
         const { name, description} = req.body;
 
         if( !name || !description ){
-            return res.status(400).json({
-                success: false,
-                message: 'Please provide name and description'
-            })
+           return res.send(error(400, 'Please provide name and description'))
         }
 
         const category = await Category.create({
@@ -23,15 +21,9 @@ const createCategory = async (req, res) => {
             description
         });
 
-        res.status(201).json({
-            success: true,
-            data: category
-        })
+        return res.send(success(201, category));
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        })
+       return res.send(error(500, error.message));
     }
 }
 
@@ -40,10 +32,7 @@ const createProduct = async (req, res) => {
         const { category_id, name, description, price, image, quantity, trending } = req.body;
 
         if (!category_id || !name || !description || !price || !image || !quantity) {
-            return res.status(400).json({
-                success: false,
-                message: 'Please provide category, name, description, price, image, and quantity'
-            });
+           return res.send(error(400, 'Please provide all required fields'));
         }
 
         const cloudImg = await cloudinary.uploader.upload(image, { folder: 'postImg' });
@@ -64,15 +53,9 @@ const createProduct = async (req, res) => {
        
         await Category.findByIdAndUpdate(category_id, { $push: { products: product._id } });
 
-        res.status(201).json({
-            success: true,
-            data: product
-        });
+        return res.send(success(201, product));
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+        return res.send(error(500, error.message));
     }
 };
 
@@ -82,20 +65,13 @@ const deleteProduct = async (req, res) => {
         const { product_id } = req.body;
         const product = await Product.findByIdAndDelete(product_id);
         if (!product) {
-            return res.status(404).json({
-                success: false,
-                message: 'Product not found'
-            });
+           return res.send(error(404, 'Product not found'));
         }
-        res.status(200).json({
-            success: true,
-            message: 'Product deleted successfully'
-        });
+        
+
+        return res.send(success(201, 'Product deleted successfully'));
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+        return res.send(error(404, 'Product not found'));
     }
 
 }
@@ -103,15 +79,14 @@ const deleteProduct = async (req, res) => {
 const getQueries = async (req, res) => {
     try {
         const queries = await Query.find();
-        res.json({
-            success: true,
-            data: queries
-        });
+
+        if(!queries){
+            return res.send(error(404, 'No queries found'));
+        }
+        
+        return res.send(success(200, queries));
     } catch (err) {
-        res.json({
-            success: false,
-            message: err.message
-        });
+        return res.send(error(404, 'No queries found'));
     }
 
 }
@@ -122,7 +97,7 @@ const createCoupon = async (req, res) => {
 
         const existingCoupon = await Coupon.findOne({ code });
         if (existingCoupon) {
-            return res.status(400).json({ success: false, message: 'Coupon code already exists' });
+            return res.send(error(400, 'Coupon already exists'));
         }
 
     
@@ -135,10 +110,10 @@ const createCoupon = async (req, res) => {
             maxUses
         });
 
-        res.status(201).json({ success: true, data: coupon });
+        return res.send(success(201, coupon));
     } catch (error) {
         console.error(error);
-        res.status(500).json({ success: false, message: 'Internal server error' });
+        return res.send(error(500, 'Internal server error'));
     }
 };
 
