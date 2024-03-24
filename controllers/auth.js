@@ -13,18 +13,15 @@ const sendOtp = async (req, res) => {
     try {
         const { email } = req.body;
 
-       
         if (!email) {
             return res.send(error(400, 'Email is required'));
         }
 
         const user = await User.findOne({ email });
-     
 
         if (user) {
             return res.send(error(409, 'User is already registered'));
         }
-
 
         const otp = otpGenerator.generate(6, {
             upperCaseAlphabets: false,
@@ -32,12 +29,9 @@ const sendOtp = async (req, res) => {
             lowerCaseAlphabets: false
         });
         
-
         const result = await OTP.findOne({ otp });
 
-  
         while (result) {
-         
             otp = otpGenerator.generate(6, {
                 upperCaseAlphabets: false,
                 specialChars: false,
@@ -131,11 +125,7 @@ const register = async (req, res) => {
 
         user.password = undefined;
         user.confirmPassword = undefined;
-        return res.json({
-            status: 'success',
-            message: 'User registered successfully',
-            data: user
-        })
+        return res.send(success(201, user));
 
     } catch (e) {
         return res.send(error(500, e.message));
@@ -262,18 +252,11 @@ const forgotPassword = async (req, res) => {
             message
         );
 
-        res.status(200).json({
-            success: true,
-            message: 'Email sent successfully'
-        })
+        res.send(success(200, 'Email sent successfully'));
 
     } catch (err) {
         console.log(err);
-        return res.status(500).json({
-            success: false,
-            message: 'Something went wrong',
-            error: err.message
-        })
+        return res.send(error(500, err.message));
     }
 }
 
@@ -323,18 +306,11 @@ const resetPassword = async (req, res) => {
             passwordUpdated(user.email, `${user.firstName} ${user.lastName}`)
         );
 
-        res.status(200).json({
-            success: true,
-            message: 'Password updated successfully'
-        })
+        res.send(success(200, 'Password updated successfully'));
 
     } catch (err) {
         console.log(err);
-        return res.status(500).json({
-            success: false,
-            message: 'Something went wrong',
-            error: err.message
-        })
+        return res.send(error(500, err.message));
     }
 }
 
@@ -378,23 +354,15 @@ const updatePassword = async (req, res) => {
             passwordUpdated(userDetails.email, `${userDetails.firstName} ${userDetails.lastName}`)
         )
 
-        res.status(200).json({
-            success: true,
-            message: "Password updated successfully"
-        });
+        res.send(success(200, 'Password updated successfully'));
 
     } catch (err) {
         console.log(err);
-        res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: err.message
-        });
+        res.send(error(500, err.message));
     }
 }
 
 const getProfile = async (req, res) => {
-
     try {
         const user = await User.findById(req.user._id);
         if (!user) {
@@ -406,21 +374,13 @@ const getProfile = async (req, res) => {
         user.password = undefined;
         user.confirmPassword = undefined;
 
-        res.status(200).json({
-            success: true,
-            data: user
-        });
+        res.send(success(200, user));
 
     } catch (err) {
         console.log(err);
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: err.message
-        });
+        res.send(error(500, err.message));
     }
 }
-
 
 module.exports = {
     sendOtp,
