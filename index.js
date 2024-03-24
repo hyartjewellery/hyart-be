@@ -39,6 +39,7 @@ app.use(cors({
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/user', require('./routes/user'));
+app.use('/api/hyart', require('./routes/common'));
 
 app.get('/', function (req, res) {
     res.send(`Hello World, running on port ${PORT}`);

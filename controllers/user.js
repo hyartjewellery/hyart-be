@@ -15,68 +15,8 @@ const razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_SECRET_KEY
 });
 
-const getAllCategory = async (req, res, next) => {
-
-    try {
-
-        const category = await Category.find();
-        if(!category) return res.send(error(404, 'Not Found'));
-        return res.send(success(200,category));
-
-    } catch (err) {
-        return res.send(error(404, err.message));
-    }
-
-}
-
-const getProductByID = async (req, res, next) => {
-
-    const { product_id } = req.body;
-    await Product.findById(product_id)
-        .then(product => {
-            return res.send(success(200,product));
-        })
-        .catch(err => {
-            return res.send(error(404, err.message));
-        })
-
-}
-
-const getAllProducts = async (req, res, next) => {
-    try {
-        const { category_id, filter } = req.body;
-        let sortCriteria = {};
-        let products;
 
 
-        let query = { category_id: category_id };
-
-        if (!filter) {
-            products = await Product.find(query);
-            return res.send(success(200,products));
-        }
-
-
-        filter.forEach((item) => {
-            let field = item.field;
-            let sortBy = item.sortBy;
-
-
-            if (sortBy === "asc") {
-                sortCriteria[field] = 1;
-            } else if (sortBy === "desc") {
-                sortCriteria[field] = -1;
-            }
-        });
-
-
-        products = await Product.find(query).sort(sortCriteria);
-
-        return res.send(success(200,products));
-    } catch (err) {
-        return res.send(error(404, err.message));
-    }
-};
 
 
 const placeOrder = async (req, res, next) => {
@@ -272,9 +212,6 @@ const contactUs = async (req, res, next) => {
 
 
 module.exports = {
-    getAllCategory,
-    getProductByID,
-    getAllProducts,
     addToWishlist,
     getWishList,
     removeFromWishList,
