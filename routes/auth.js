@@ -13,5 +13,6 @@ router.post('/forgot-password', auth.forgotPassword);
 router.post('/reset-password', auth.resetPassword);
 router.post('/update-password',protect.protect , auth.updatePassword);
 router.get('/get-profile', protect.protect, auth.getProfile);
+router.post('/profile-update', protect.protect, auth.updateProfile);
 
 module.exports = router;

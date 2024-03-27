@@ -35,6 +35,10 @@ const getProductByCatID = async (req, res, next) => {
         let sortCriteria = {};
         let products;
 
+        const category = Category.findById(category_id);
+        if (!category) {
+            return res.send(error(404, 'Category not found'));
+        }
 
         let query = { category_id: category_id };
 
@@ -58,8 +62,14 @@ const getProductByCatID = async (req, res, next) => {
 
 
         products = await Product.find(query).sort(sortCriteria);
+        const result = {
+            category,
+            products
+        };
+        console.log(result);
+        
 
-        return res.send(success(200,products));
+        return res.send(success(200,{result}));
     } catch (err) {
         return res.send(error(404, err.message));
     }
@@ -90,5 +100,8 @@ const getAllProducts = async (req, res, next) => {
         return res.send(error(404, err.message));
     }
 };
+
+
+
 
 module.exports = {getAllCategory, getProductByID, getProductByCatID, getAllProducts};

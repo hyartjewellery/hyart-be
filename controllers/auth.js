@@ -382,6 +382,41 @@ const getProfile = async (req, res) => {
     }
 }
 
+const updateProfile = async (req, res, next) => {
+
+    try{
+
+        const user = await User.findById(req.user._id);
+
+        if (!user) {
+            return res.send(error(404, 'User not found'));
+        }
+    
+        const { image } = req.body;
+
+        const cloudImg = await cloudinary.uploader.upload(image, { folder: 'postImg' });
+
+        const updatedUser = await User.findByIdAndUpdate(req.user._id, {
+            userAvatar: {
+                publicId: cloudImg.public_id,
+                url: cloudImg.url
+            }
+        });
+
+        updatedUser.password = undefined;
+        updatedUser.confirmPassword = undefined;
+
+        res.send(success(200, updatedUser));
+
+
+    }catch (err) {
+        console.log(err);
+        res.send(error(500, err.message));
+    }
+
+
+} 
+
 module.exports = {
     sendOtp,
     register,
@@ -391,5 +426,6 @@ module.exports = {
     resetPassword,
     updatePassword,
     refreshAccessToken,
+    updateProfile,
     logout
 };
