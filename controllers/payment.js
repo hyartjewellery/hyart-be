@@ -1,10 +1,13 @@
 const Payment = require('../models/Payment');
 const crypto = require('crypto');
 const { error } = require('../utils/responseWrapper');
+const User = require('../models/User');
 
-const paymentVerification = async (req, res, next) => {
-
-    const User = await User.findById(req.user._id);
+const paymentVerification = async (req, res) => {
+    
+    console.log("Motu patlo,", req.user._id);
+    const user = await User.findById(req.user._id);
+    console.log("Tota tota",user);
 
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, amount } = req.body;
 
@@ -21,18 +24,17 @@ const paymentVerification = async (req, res, next) => {
         try {
 
             const payment = await Payment.findOneAndUpdate(
-                { razorpay_order_id, razorpay_payment_id, amount, user_id },
+                { razorpay_order_id, razorpay_payment_id, amount, user_id: user._id},
                 { $set: { status: 'successful' } },
                 { new: true }
             );
             
-
             console.log(payment);
 
             if (!payment) {
               
                 const sex = await Payment.create({
-                    user_id: User._id,
+                    user_id: user._id,
                     order_id:razorpay_order_id,
                     razorpay_payment_id,
                     razorpay_signature,
@@ -43,12 +45,12 @@ const paymentVerification = async (req, res, next) => {
             }
 
 
-            return res.redirect(`/payments/success`);
+            return res.redirect(`http://localhost:3000/payments/success`);
         } catch (err) {
             return res.send(error(500, err.message));
         }
     } else {
-        return res.redirect(`/payments/fail`);
+        return res.redirect(`http://localhost:3000/payments/failed`);
     }
 };
 
