@@ -16,20 +16,20 @@ const razorpay = new Razorpay({
 });
 
 
-
-
-
-const placeOrder = async (req, res, next) => {
+const placeOrder = async (req, res) => {
     try {
-        const { products } = req.body;
 
+        const { products } = req.body;
         const user_id = req.user._id;
 
+        
+
         const user = await User.findById(user_id);
+        console.log("STEP 1 ---" , user);
+
         if (!user) {
             return res.send(error(404, 'User not found'));
         }
-
 
         let totalAmount = 0;
 
@@ -44,10 +44,12 @@ const placeOrder = async (req, res, next) => {
                 return res.send(error(404, 'Quantity not available'));
             }
 
-       
             totalAmount += product.price * quantity;
+            
            
         }
+
+        console.log("STEP 2 ---" , totalAmount);
 
         const order = {
             user_id: user_id,
@@ -55,17 +57,19 @@ const placeOrder = async (req, res, next) => {
             status: 'pending',
             products: products.map(({ product_id, quantity }) => ({ product_id, quantity })),
         };
+     
+        console.log("STEP 3 ---" , order);
 
-      
+
         const createdOrder = await Order.create(order);
 
-      
+        console.log("STEP 4 ---" , createdOrder);
+
         // Decrease product quantities in the database
         for (const { product_id, quantity } of products) {
             await Product.findByIdAndUpdate(product_id, { $inc: { quantity: -quantity } });
         }
       
-
         // Create Razorpay order
         const razorpayOrder = await razorpay.orders.create({
             amount: totalAmount * 100, // Razorpay accepts amount in paise
@@ -74,6 +78,8 @@ const placeOrder = async (req, res, next) => {
             payment_capture: 1 // Auto capture payment
         });
 
+        console.log("STEP 5 ---" , razorpayOrder);
+
         // Store payment details in your database
         await Payment.create({
             order_id: createdOrder._id,
@@ -81,6 +87,8 @@ const placeOrder = async (req, res, next) => {
             status: 'pending', // Payment status initially pending until success
             paymentMethod: 'razorpay', // Assuming payment method is Razorpay
         });
+
+        console.log("STEP 6 ---" );
 
       
         return res.send(success(200,razorpayOrder));
