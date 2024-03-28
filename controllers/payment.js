@@ -3,7 +3,10 @@ const crypto = require('crypto');
 const { error } = require('../utils/responseWrapper');
 
 const paymentVerification = async (req, res, next) => {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+    const User = await User.findById(req.user._id);
+
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, amount } = req.body;
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
@@ -16,19 +19,24 @@ const paymentVerification = async (req, res, next) => {
 
     if (isAuthentic) {
         try {
+
             const payment = await Payment.findOneAndUpdate(
-                { razorpay_order_id, razorpay_payment_id },
+                { razorpay_order_id, razorpay_payment_id, amount, user_id },
                 { $set: { status: 'successful' } },
                 { new: true }
             );
+            
 
             console.log(payment);
 
             if (!payment) {
+              
                 const sex = await Payment.create({
-                    razorpay_order_id,
+                    user_id: User._id,
+                    order_id:razorpay_order_id,
                     razorpay_payment_id,
                     razorpay_signature,
+                    amount,
                     status: 'successful'
                 });
                 console.log(sex);
