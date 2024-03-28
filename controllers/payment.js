@@ -1,9 +1,8 @@
 const Payment = require('../models/Payment');
 const crypto = require('crypto');
-const { error, success } = require('../utils/responseWrapper');
+const { error } = require('../utils/responseWrapper');
 
 const paymentVerification = async (req, res, next) => {
-
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
@@ -16,7 +15,6 @@ const paymentVerification = async (req, res, next) => {
     const isAuthentic = expectedSignature === razorpay_signature;
 
     if (isAuthentic) {
-        
         try {
             const payment = await Payment.findOneAndUpdate(
                 { razorpay_order_id, razorpay_payment_id },
@@ -24,27 +22,26 @@ const paymentVerification = async (req, res, next) => {
                 { new: true }
             );
 
+            console.log(payment);
+
             if (!payment) {
-              
-                await Payment.create({
+                const sex = await Payment.create({
                     razorpay_order_id,
                     razorpay_payment_id,
                     razorpay_signature,
                     status: 'successful'
                 });
+                console.log(sex);
             }
 
-    
-            return res.redirect(`http://localhost:3000/payment-success?reference=${razorpay_payment_id}`);
-        } catch (error) {
-           
-            return res.send(error(500, error.message));
+
+            return res.redirect(`/payments/success`);
+        } catch (err) {
+            return res.send(error(500, err.message));
         }
     } else {
-        
-     
-        return res.send(error(500, 'Internal server error'));
+        return res.redirect(`/payments/fail`);
     }
 };
 
-module.exports = {paymentVerification};
+module.exports = { paymentVerification };
