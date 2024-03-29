@@ -1,13 +1,11 @@
 const Payment = require('../models/Payment');
 const crypto = require('crypto');
-const { error } = require('../utils/responseWrapper');
+const { error, success } = require('../utils/responseWrapper');
 const User = require('../models/User');
 const Order = require('../models/Order');
 
 const paymentVerification = async (req, res) => {
     try {
-       
-
         const user = await User.findById(req.user._id);
         const { orderCreationId, razorpay_order_id, razorpay_payment_id, razorpay_signature, amount, receipt } = req.body;
         const body = orderCreationId + "|" + razorpay_payment_id;
@@ -27,7 +25,6 @@ const paymentVerification = async (req, res) => {
             { new: true }
         );
 
-
         if (!payment) {
             const new_payment = await Payment.create({
                 user_id: user._id,
@@ -39,7 +36,7 @@ const paymentVerification = async (req, res) => {
                 status: 'successful'
             });
 
-            payment = new_payment; // Assign new payment to the 'payment' variable
+            payment = new_payment; 
         }
 
         const order = await Order.findOneAndUpdate(
@@ -49,9 +46,8 @@ const paymentVerification = async (req, res) => {
         );
 
         return res.status(200).send(success(200, 'Payment successful', { payment, order }));
-    } catch (error) {
-        console.error("Error in payment verification:", error);
-        return res.status(500).send(error(500, 'Internal Server Error'));
+    } catch (err) {
+        return res.status(500).send(error(500, err.message));
     }
 };
 

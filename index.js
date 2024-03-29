@@ -1,5 +1,5 @@
 const express = require('express');
-const dotenv = require('dotenv').config(); // Import and configure dotenv
+const dotenv = require('dotenv').config();
 const dbConnect = require('./db');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
@@ -7,12 +7,8 @@ const cloudinary = require('cloudinary').v2;
 const cors = require('cors');
 const PORT = process.env.PORT;
 const app = express();
-// const Razorpay = require('razorpay');
-
-console.log(PORT);
 
 dbConnect();
-
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -20,18 +16,14 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-
-
 app.use(express.json());
 app.use(morgan('common'));
 app.use(cookieParser());
 
 let origin = 'http://localhost:3000';
-// if (process.env.NODE_ENV === 'production') {
-//     origin = process.env.CORS_ORIGIN;
-// }
-
-
+if (process.env.NODE_ENV === 'production') {
+    origin = process.env.CORS_ORIGIN;
+}
 
 app.use(cors({
     credentials: true,
