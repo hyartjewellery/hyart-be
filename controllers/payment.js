@@ -45,6 +45,18 @@ const paymentVerification = async (req, res) => {
             { new: true }
         );
 
+
+
+      if (!user.orders) {
+            user.orders = [];
+        }
+
+        
+        user.orders.push(order._id);
+        
+        await user.save();
+
+
         return res.status(200).send(success(200, 'Payment successful', { payment, order }));
     } catch (err) {
         return res.status(500).send(error(500, err.message));
