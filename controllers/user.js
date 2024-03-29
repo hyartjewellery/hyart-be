@@ -23,8 +23,7 @@ const placeOrder = async (req, res) => {
         const { products } = req.body;
         const user_id = req.user._id;
         const user = await User.findById(user_id);
-        console.log("STEP 1 ---" , user);
-
+       
         if (!user) {
             return res.send(error(404, 'User not found'));
         }
@@ -43,11 +42,8 @@ const placeOrder = async (req, res) => {
             }
 
             totalAmount += product.price * quantity;
-            
-           
+                  
         }
-
-        console.log("STEP 2 ---" , totalAmount);
 
         const order = {
             user_id: user_id,
@@ -56,14 +52,8 @@ const placeOrder = async (req, res) => {
             products: products.map(({ product_id, quantity }) => ({ product_id, quantity })),
         };
      
-        console.log("STEP 3 ---" , order);
-
-
         const createdOrder = await Order.create(order);
 
-        console.log("STEP 4 ---" , createdOrder);
-
-        // Decrease product quantities in the database
         for (const { product_id, quantity } of products) {
             await Product.findByIdAndUpdate(product_id, { $inc: { quantity: -quantity } });
         }
@@ -75,7 +65,6 @@ const placeOrder = async (req, res) => {
             payment_capture: 1
         });
 
-        console.log("STEP 5 ---" , razorpayOrder);
 
         await Payment.create({
             order_id: createdOrder._id,
@@ -84,11 +73,12 @@ const placeOrder = async (req, res) => {
             paymentMethod: 'razorpay', 
         });
 
-        console.log("STEP 6 ---" );
-
         return res.send(success(200,razorpayOrder));
+
     } catch (err) {
+
         return res.send(error(404, err.message));
+        
     }
 };
 
