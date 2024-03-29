@@ -2,14 +2,13 @@ const Payment = require('../models/Payment');
 const crypto = require('crypto');
 const { error } = require('../utils/responseWrapper');
 const User = require('../models/User');
+const Order = require('../models/Order');
 
 const paymentVerification = async (req, res) => {
     
     console.log("Motu patlo,", req.user._id);
     const user = await User.findById(req.user._id);
-    console.log("Tota tota",user);
-
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, amount } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, amount, receipt } = req.body;
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
@@ -33,16 +32,25 @@ const paymentVerification = async (req, res) => {
 
             if (!payment) {
               
-                const sex = await Payment.create({
+                await Payment.create({
                     user_id: user._id,
-                    order_id:razorpay_order_id,
+                    order_id: receipt,
+                    razorpay_order_id,
                     razorpay_payment_id,
                     razorpay_signature,
                     amount,
                     status: 'successful'
                 });
-                console.log(sex);
+                
             }
+
+            const order = await Order.findOneAndUpdate(
+                {   order_id },// TODO 
+                { $set: { status: 'confirmed' } },
+                { new: true }
+            );
+
+            console.log("Updated order", order);
 
 
             return res.redirect(`http://localhost:3000/payments/success`);

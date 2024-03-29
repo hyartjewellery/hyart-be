@@ -17,13 +17,11 @@ const razorpay = new Razorpay({
 
 
 const placeOrder = async (req, res) => {
+    
     try {
 
         const { products } = req.body;
         const user_id = req.user._id;
-
-        
-
         const user = await User.findById(user_id);
         console.log("STEP 1 ---" , user);
 
@@ -70,27 +68,24 @@ const placeOrder = async (req, res) => {
             await Product.findByIdAndUpdate(product_id, { $inc: { quantity: -quantity } });
         }
       
-        // Create Razorpay order
         const razorpayOrder = await razorpay.orders.create({
-            amount: totalAmount * 100, // Razorpay accepts amount in paise
+            amount: totalAmount * 100, 
             currency: 'INR',
-            receipt: createdOrder._id.toString(), // Receipt ID, can be order ID from your database
-            payment_capture: 1 // Auto capture payment
+            receipt: createdOrder._id.toString(), 
+            payment_capture: 1
         });
 
         console.log("STEP 5 ---" , razorpayOrder);
 
-        // Store payment details in your database
         await Payment.create({
             order_id: createdOrder._id,
             amount: totalAmount,
-            status: 'pending', // Payment status initially pending until success
-            paymentMethod: 'razorpay', // Assuming payment method is Razorpay
+            status: 'pending', 
+            paymentMethod: 'razorpay', 
         });
 
         console.log("STEP 6 ---" );
 
-      
         return res.send(success(200,razorpayOrder));
     } catch (err) {
         return res.send(error(404, err.message));
