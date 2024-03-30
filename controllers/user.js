@@ -5,6 +5,7 @@ const Razorpay = require('razorpay');
 const Order = require('../models/Order');
 const Payment = require('../models/Payment');
 const Query = require('../models/Query');
+const Coupon = require('../models/Coupon');
 const userConfirmationTemplate = require('../utils/template/userConfirmation');
 const contactUsTemplate = require('../utils/template/contactUs');
 const mailSender = require('../utils/mailSender');
@@ -17,10 +18,9 @@ const razorpay = new Razorpay({
 
 
 const placeOrder = async (req, res) => {
-    
     try {
-
-        const { products } = req.body;
+        const { products, couponCode } = req.body;
+   
         const user_id = req.user._id;
         const user = await User.findById(user_id);
        
@@ -42,43 +42,83 @@ const placeOrder = async (req, res) => {
             }
 
             totalAmount += product.price * quantity;
-                  
         }
+
+       
+
+        let discountAmount = 0;
+        let couponApplied = false;
+        let couponDiscountAmount = 0;
+        if (couponCode) {
+            const coupon = await Coupon.findOne({ code: couponCode });
+
+            if (!coupon) {
+                return res.send(error(404, 'Coupon not found'));
+            }
+
+            const currentDate = new Date();
+            if (currentDate < coupon.validFrom || currentDate > coupon.validUntil) {
+                return res.send(error(400, 'Coupon is not valid at this time'));
+            }
+
+            const userCouponUsage = coupon.userUsage.find(u => u.userId.toString() === user_id.toString());
+            if (userCouponUsage && userCouponUsage.usedCount >= coupon.maxUses) {
+                return res.send(error(400, 'You have reached the maximum usage limit for this coupon'));
+            }
+
+            if (coupon.discountType === 'percentage') {
+                discountAmount = (totalAmount * coupon.discountAmount) / 100;
+            } 
+
+            couponApplied = true;
+            couponDiscountAmount = discountAmount;
+
+            if (userCouponUsage) {
+                userCouponUsage.usedCount++;
+            } else {
+                coupon.userUsage.push({ userId: user_id, usedCount: 1 });
+            }
+
+            await coupon.save();
+        }
+       
+        const finalAmount = totalAmount - discountAmount;
+
 
         const order = {
             user_id: user_id,
-            totalAmount: totalAmount,
+            totalAmount: finalAmount,
             status: 'pending',
             products: products.map(({ product_id, quantity }) => ({ product_id, quantity })),
+            couponApplied: couponApplied,
+            couponDiscountAmount: couponDiscountAmount
         };
      
         const createdOrder = await Order.create(order);
+        console.log("ORDER", createdOrder);
 
         for (const { product_id, quantity } of products) {
             await Product.findByIdAndUpdate(product_id, { $inc: { quantity: -quantity } });
         }
       
         const razorpayOrder = await razorpay.orders.create({
-            amount: totalAmount * 100, 
+            amount: finalAmount * 100, 
             currency: 'INR',
             receipt: createdOrder._id.toString(), 
             payment_capture: 1
         });
 
-
         await Payment.create({
             order_id: createdOrder._id,
-            amount: totalAmount,
+            amount: finalAmount, 
             status: 'pending', 
             paymentMethod: 'razorpay', 
         });
 
-        return res.send(success(200,razorpayOrder));
+        return res.send(success(200, razorpayOrder));
 
     } catch (err) {
-
-        return res.send(error(404, err.message));
-        
+        return res.send(error(500, err.message));
     }
 };
 
@@ -201,6 +241,15 @@ const contactUs = async (req, res, next) => {
     }
 };
 
+const listAllCoupons = async (req, res) => {
+    try {
+        const coupons = await Coupon.find();        
+        return res.send(success(200, coupons));
+    } catch (err) {
+        return res.send(error(404, err.message));
+    }
+};
+
 
 
 
@@ -209,5 +258,6 @@ module.exports = {
     getWishList,
     removeFromWishList,
     placeOrder,
+    listAllCoupons,
     contactUs
 }

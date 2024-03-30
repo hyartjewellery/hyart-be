@@ -34,7 +34,18 @@ const orderSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  couponApplied: {
+    type: Boolean,
+    default: false
+},
+couponCode: {
+    type: String
+},
+couponDiscountAmount: {
+    type: Number,
+    default: 0
+}
 });
 
 const Order = mongoose.model('Order', orderSchema);

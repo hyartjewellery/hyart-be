@@ -11,5 +11,6 @@ router.post('/get-wishlist',protect.protect, checkPermission(["user"]), userCont
 router.post('/place-order', protect.protect, checkPermission(["user"]), userController.placeOrder); 
 router.post('/paymentVerification',protect.protect, checkPermission(["user"]), paymentController.paymentVerification);
 router.post('/contact-us',protect.protect, checkPermission(["user"]), userController.contactUs);
+router.post('/list-coupons',protect.protect, checkPermission(["user"]), userController.listAllCoupons);
 
 module.exports = router;
