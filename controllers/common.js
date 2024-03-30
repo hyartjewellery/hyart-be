@@ -101,6 +101,8 @@ const getAllProducts = async (req, res, next) => {
     }
 };
 
+// get All Products --> filter -> trending true (limit 8), mixed to show on home page
+
 
 
 

@@ -382,40 +382,70 @@ const getProfile = async (req, res) => {
     }
 }
 
-const updateProfile = async (req, res, next) => {
+const updateProfile = async (req, res) => {   
+    try {
 
-    try{
 
         const user = await User.findById(req.user._id);
+        console.log(user);
 
         if (!user) {
             return res.send(error(404, 'User not found'));
         }
-    
-        const { image } = req.body;
 
-        const cloudImg = await cloudinary.uploader.upload(image, { folder: 'postImg' });
+        let updateFields = {};
 
-        const updatedUser = await User.findByIdAndUpdate(req.user._id, {
-            userAvatar: {
+       console.log("CHECKING", req.body.image);
+        if (req.body.image) {
+            const cloudImg = await cloudinary.uploader.upload(req.body.image, { folder: 'postImg' });
+            updateFields.userAvatar = {
                 publicId: cloudImg.public_id,
                 url: cloudImg.url
-            }
-        });
+            };
+        }
 
+        console.log("CHECKING", req.body.location);
+
+      
+        if (req.body.location) {
+
+            console.log("CHECKING", req.body.location);
+
+            const { city, state, pincode, address, country } = req.body.location;
+
+            console.log("CHECKING", city, state, pincode, address, country)
+
+         
+            if (!city || !state || !pincode || !address || !country) {
+                return res.send(error(400, 'All fields in the location object are required'));
+            }
+
+            updateFields.location = {
+                city: city,
+                state: state,
+                pincode: pincode,
+                address: address,
+                country: country
+            };
+        }
+
+     
+        const updatedUser = await User.findByIdAndUpdate(req.user._id, updateFields, { new: true });
+
+        console.log("UPDATED USER", updatedUser)
+
+        
         updatedUser.password = undefined;
         updatedUser.confirmPassword = undefined;
 
         res.send(success(200, updatedUser));
-
-
-    }catch (err) {
+    } catch (err) {
         console.log(err);
         res.send(error(500, err.message));
     }
+}
 
 
-} 
 
 module.exports = {
     sendOtp,

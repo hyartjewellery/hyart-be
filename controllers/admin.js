@@ -117,6 +117,9 @@ const createCoupon = async (req, res) => {
     }
 };
 
+// is banner api - limit 3
+// is trending api - limit 8
+
 
 module.exports = {
     createCategory,
