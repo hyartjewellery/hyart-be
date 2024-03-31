@@ -66,8 +66,7 @@ const getProductByCatID = async (req, res, next) => {
             category,
             products
         };
-        console.log(result);
-        
+       
 
         return res.send(success(200,{result}));
     } catch (err) {
