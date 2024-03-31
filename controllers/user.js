@@ -250,6 +250,23 @@ const listAllCoupons = async (req, res) => {
     }
 };
 
+//get order status
+const getOrderStatus = async (req, res) => {
+    try {
+        const { order_id } = req.body;
+
+        const order = await Order.findById(order_id);
+
+        if (!order) {
+            return res.send(error(404, 'Order not found'));
+        }
+
+        return res.send(success(200, order));
+
+    } catch (error) {
+        return res.send(error(500, 'Internal server error'));
+    }
+}
 
 
 
@@ -259,5 +276,6 @@ module.exports = {
     removeFromWishList,
     placeOrder,
     listAllCoupons,
+    getOrderStatus,
     contactUs
 }

@@ -75,31 +75,41 @@ const getProductByCatID = async (req, res, next) => {
     }
 };
 
-const getAllProducts = async (req, res, next) => {
+const getAllProducts = async (req, res) => {
     try {
         const categories = await Category.find().populate('products');
-        if (!categories) {
+        if (!categories || categories.length === 0) {
             return res.send(error(404, 'Categories not found'));
         }
 
-       
         let allProducts = [];
         categories.forEach(category => {
             allProducts = allProducts.concat(category.products);
         });
 
-       
         const standaloneProducts = await Product.find();
+        if (!standaloneProducts || standaloneProducts.length === 0) {
+            return res.send(error(404, 'Products not found'));
+        }
 
-        
+        let trendingProducts = [];
+
+        if (req.body.trending) {
+            trendingProducts = standaloneProducts.filter(product => product.trending === true);
+            trendingProducts = trendingProducts.slice(0, 8); // Only keep the last 8 trending products
+        }
+
         allProducts = allProducts.concat(standaloneProducts);
 
-        return res.send(success(200, allProducts));
+        return res.send(success(200, { allProducts, trendingProducts }));
 
     } catch (err) {
-        return res.send(error(404, err.message));
+        return res.send(error(500, err.message));
     }
 };
+
+
+
 
 // get All Products --> filter -> trending true (limit 8), mixed to show on home page
 
