@@ -4,6 +4,8 @@ const cloudinary = require('cloudinary').v2;
 const Query = require('../models/Query');
 const Coupon = require('../models/Coupon');
 const Order = require('../models/Order');
+const User = require('../models/User');
+const Payment = require('../models/Payment');
 const { error, success } = require('../utils/responseWrapper');
 
 
@@ -119,19 +121,6 @@ const createCoupon = async (req, res) => {
 };
 
 
-
-const addToBanner = async (req, res) => {
-
-    try{
-
-
-
-    }catch (error){
-        return res.send(error(500, 'Internal server error'));
-    }
-}
-
-
 const updateOrderStatus = async (req, res) => {
     try {
         const { order_id, status } = req.body;
@@ -208,6 +197,103 @@ const updateTrending = async (req, res) => {
     }
 };
 
+const getTotalCount = async (req, res) => {
+
+    try{
+        const totalUsers = await User.countDocuments();
+        const totalOrders = await Order.countDocuments();
+        const totalProducts = await Product.countDocuments();
+        const totalCategories = await Category.countDocuments();
+        const confirmedOrders = await Order.countDocuments({ status: 'confirmed' });
+        const pendingOrders = await Order.countDocuments({ status: 'pending' });
+        const cancelledOrders = await Order.countDocuments({ status: 'cancelled' });
+        const completedOrders = await Order.countDocuments({ status: 'completed' });
+
+        const ans = {
+            totalUsers,
+            totalOrders,
+            totalProducts,
+            totalCategories,
+            confirmedOrders,
+            pendingOrders,
+            cancelledOrders,
+            completedOrders
+        }
+     
+        return res.send(success(200, ans));
+
+    }catch (err){
+        return res.send(error(500, 'Internal server error'));
+    }
+}
+
+const getEarning = async (req, res) => {
+    try {
+     
+        
+        const { filter } = req.body;
+
+       
+        const today = new Date();
+        let filterObject = {};
+
+        if (filter === 'day') {
+            filterObject = {
+                createdAt: { $gte: new Date(today.getFullYear(), today.getMonth(), today.getDate()), $lt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1) },
+                status: 'successful'
+            };
+        } else if (filter === 'month') {
+            filterObject = {
+                createdAt: { $gte: new Date(today.getFullYear(), today.getMonth(), 1), $lt: new Date(today.getFullYear(), today.getMonth() + 1, 1) },
+                status: 'successful'
+            };
+        } else if (filter === 'year') {
+            filterObject = {
+                createdAt: { $gte: new Date(today.getFullYear(), 0, 1), $lt: new Date(today.getFullYear() + 1, 0, 1) },
+                status: 'successful'
+            };
+        } else if (filter === 'yesterday') {
+            const yesterday = new Date(today);
+            yesterday.setDate(today.getDate() - 1);
+            filterObject = {
+                createdAt: { $gte: new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate()), $lt: new Date(today.getFullYear(), today.getMonth(), today.getDate()) },
+                status: 'successful'
+            };
+        } else if (filter === 'lastmonth') {
+            const lastMonth = new Date(today);
+            lastMonth.setMonth(today.getMonth() - 1);
+            filterObject = {
+                createdAt: { $gte: new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 1), $lt: new Date(today.getFullYear(), today.getMonth(), 1) },
+                status: 'successful'
+            };
+        } else if (filter === 'lastyear') {
+            const lastYear = new Date(today);
+            lastYear.setFullYear(today.getFullYear() - 1);
+            filterObject = {
+                createdAt: { $gte: new Date(lastYear.getFullYear(), 0, 1), $lt: new Date(today.getFullYear(), 0, 1) },
+                status: 'successful'
+            };
+        } else {
+            return res.status(400).send('Invalid filter type');
+        }
+
+        // Aggregate the total earnings
+        const result = await Payment.aggregate([
+            { $match: filterObject },
+            { $group: { _id: null, totalAmount: { $sum: { $divide: ['$amount', 100] } } } }
+        ])
+
+        // Extract total earnings from the result
+        const totalEarnings = result.length > 0 ? result[0].totalAmount : 0;
+
+        // Return total earnings as API response
+        return res.status(200).json({ totalEarnings });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).send('Internal server error');
+    }
+};
+
 
 
 
@@ -220,5 +306,7 @@ module.exports = {
     createCoupon,
     updateOrderStatus,
     updateTrending,
-    getOrderStatus
+    getOrderStatus,
+    getTotalCount,
+    getEarning
 }
