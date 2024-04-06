@@ -62,6 +62,53 @@ const createProduct = async (req, res) => {
     }
 };
 
+const updateProduct = async(req, res) => {
+
+    try{
+
+        const { product_id, name, description, price, image, quantity, trending } = req.body;
+
+        if(!product_id){
+            return res.send(error(400, 'Please provide product id'));
+        }
+
+        const product = await Product.findById(product_id);
+        if(!product){
+            return res.send(error(404, 'Product not found'));
+        }
+
+        if(name){
+            product.name = name;
+        }
+        if(description){
+            product.description = description;
+        }
+        if(price){
+            product.price = price;
+        }
+        if(image){
+            const cloudImg = await cloudinary.uploader.upload(image, { folder: 'postImg' });
+            product.image = {
+                publicId: cloudImg.public_id,
+                url: cloudImg.url
+            }
+        }
+        if(quantity){
+            product.quantity = quantity;
+        }
+        if(trending){
+            product.trending = trending;
+        }
+
+        await product.save();
+
+        return res.send(success(200, product));
+
+    }catch(err){
+        return res.send(error(500, 'Internal server error'));
+    }
+}
+
 const deleteProduct = async (req, res) => {
 
     try {
@@ -119,7 +166,6 @@ const createCoupon = async (req, res) => {
         return res.send(error(500, 'Internal server error'));
     }
 };
-
 
 const updateOrderStatus = async (req, res) => {
     try {
@@ -308,5 +354,6 @@ module.exports = {
     updateTrending,
     getOrderStatus,
     getTotalCount,
-    getEarning
+    getEarning,
+    updateProduct
 }

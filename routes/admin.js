@@ -13,6 +13,7 @@ router.post('/update-order-status',protect.protect, checkPermission(["admin"]), 
 router.post('/get-order-status',protect.protect, checkPermission(["admin"]), adminController.getOrderStatus);
 router.post('/update-trending',protect.protect, checkPermission(["admin"]), adminController.updateTrending);
 router.post('/get-count',protect.protect, checkPermission(["admin"]), adminController.getTotalCount);
+router.post('/update-product',protect.protect, checkPermission(["admin"]), adminController.updateProduct);
 router.post('/earning',protect.protect, checkPermission(["admin"]), adminController.getEarning);
 
 module.exports = router;
