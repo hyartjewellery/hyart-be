@@ -84,13 +84,8 @@ const getAllProducts = async (req, res) => {
         let allProducts = [];
         categories.forEach(category => {
             category.products.forEach(product => {
-                allProducts.push({
-                    ...product.toObject(),
-                    category: {
-                        _id: category._id,
-                        name: category.name
-                    }
-                });
+                const productWithCategory = { ...product.toObject(), categoryName: category.name };
+                allProducts.push(productWithCategory);
             });
         });
 
@@ -106,10 +101,7 @@ const getAllProducts = async (req, res) => {
             trendingProducts = trendingProducts.slice(0, 8); // Only keep the last 8 trending products
         }
 
-        allProducts = allProducts.concat(standaloneProducts.map(product => ({
-            ...product.toObject(),
-            category: null // For standalone products, category is null
-        })));
+        allProducts = allProducts.concat(standaloneProducts);
 
         return res.send(success(200, { allProducts, trendingProducts }));
 
@@ -117,7 +109,6 @@ const getAllProducts = async (req, res) => {
         return res.send(error(500, err.message));
     }
 };
-
 
 
 
