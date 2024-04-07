@@ -85,12 +85,11 @@ const getAllProducts = async (req, res) => {
         categories.forEach(category => {
             category.products.forEach(product => {
                 allProducts.push({
+                    ...product.toObject(),
                     category: {
                         _id: category._id,
-                        name: category.name 
-                       
-                    },
-                    product
+                        name: category.name
+                    }
                 });
             });
         });
@@ -107,7 +106,10 @@ const getAllProducts = async (req, res) => {
             trendingProducts = trendingProducts.slice(0, 8); // Only keep the last 8 trending products
         }
 
-        allProducts = allProducts.concat(standaloneProducts.map(product => ({ category: null, product })));
+        allProducts = allProducts.concat(standaloneProducts.map(product => ({
+            ...product.toObject(),
+            category: null // For standalone products, category is null
+        })));
 
         return res.send(success(200, { allProducts, trendingProducts }));
 
@@ -115,6 +117,7 @@ const getAllProducts = async (req, res) => {
         return res.send(error(500, err.message));
     }
 };
+
 
 
 
