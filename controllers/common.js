@@ -75,14 +75,12 @@ const getProductByCatID = async (req, res, next) => {
 };
 
 const getAllProducts = async (req, res) => {
+    
     try {
-        // Fetch all products from the database
+ 
         const allProducts = await Product.find();
 
-        // Fetch trending products (assuming you have logic for this)
-        // const trendingProducts = await getTrendingProducts();
-
-        // Map over allProducts to populate category names
+   
         const productsWithCategoryNames = await Promise.all(allProducts.map(async (product) => {
             const category = await Category.findById(product.category_id);
             return {
@@ -91,20 +89,12 @@ const getAllProducts = async (req, res) => {
             };
         }));
 
-        // Respond with success and the products
+   
         return res.send(success(200, { allProducts: productsWithCategoryNames }));
     } catch (err) {
-        // Handle errors
         return res.send(error(500, err.message));
     }
 };
-
-
-
-
-// get All Products --> filter -> trending true (limit 8), mixed to show on home page
-
-
 
 
 module.exports = {getAllCategory, getProductByID, getProductByCatID, getAllProducts};

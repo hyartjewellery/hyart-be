@@ -16,7 +16,6 @@ const razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_SECRET_KEY
 });
 
-
 const placeOrder = async (req, res) => {
     try {
         const { products, couponCode } = req.body;
@@ -250,7 +249,6 @@ const listAllCoupons = async (req, res) => {
     }
 };
 
-//get order status
 const getOrderStatus = async (req, res) => {
     try {
         const { order_id } = req.body;

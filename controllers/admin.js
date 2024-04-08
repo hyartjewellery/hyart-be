@@ -341,9 +341,6 @@ const getEarning = async (req, res) => {
 };
 
 
-
-
-
 module.exports = {
     createCategory,
     createProduct,
