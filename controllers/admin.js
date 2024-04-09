@@ -331,10 +331,11 @@ const getEarning = async (req, res) => {
         const totalEarnings = result.length > 0 ? result[0].totalAmount : 0;
 
         // Return total earnings as API response
-        return res.status(200).json({ totalEarnings });
+        
+        return res.send(success(200, { totalEarnings }));
     } catch (error) {
         console.error(error);
-        return res.status(500).send('Internal server error');
+        return res.send(error(500, 'Internal server error'));
     }
 };
 
