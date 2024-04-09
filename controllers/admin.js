@@ -340,6 +340,79 @@ const getEarning = async (req, res) => {
     }
 };
 
+const deleteCategory = async (req, res) => {
+    try {
+        const { category_id } = req.body;
+
+        const category = await Category.findById(category_id);
+        if (!category) {
+            return res.send(error(404, 'Category not found'));
+        }
+
+        if(category.products.length > 0){
+         return res.send(error(400, 'Category has products, cannot delete'));   
+        }
+
+        await Category.findByIdAndDelete(category_id);
+        return res.send(success(201, 'Category deleted successfully'));
+    }
+    catch (error) {
+        return res.send(error(500, 'Internal Server Error'));
+    }
+}
+
+const editCategory = async (req, res) => {
+    try {
+        const { category_id, name, description } = req.body;
+
+        const category = await Category.findById(category_id);
+
+        if (!category) {
+            return res.send(error(404, 'Category not found'));
+        }
+
+        if (name) {
+            category.name = name;
+        }
+        if (description) {
+            category.description = description;
+        }
+
+        return res.send(success(200, category));
+
+    } catch (error) {
+        return res.send(error(500, 'Internal server error'));
+    }
+};
+
+const getUsers = async (req, res) => {
+    try {
+
+        const users = await User.find();
+
+        if (!users) {
+            return res.send(error(404, 'No users found'));
+        }
+
+        const newUser = users.filter(user => user.role !== 'admin');
+
+        newUser.forEach(user => {
+            user.password = undefined;
+            user.confirmPassword = undefined;
+        });
+
+        return res.send(success(200, newUser));
+        
+
+    } catch (error) {
+
+        return res.send(error(500, 'Internal server error'));
+    }
+}
+
+
+
+
 
 module.exports = {
     createCategory,
@@ -352,5 +425,8 @@ module.exports = {
     getOrderStatus,
     getTotalCount,
     getEarning,
-    updateProduct
+    updateProduct,
+    deleteCategory,
+    editCategory,
+    getUsers
 }

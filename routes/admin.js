@@ -15,5 +15,8 @@ router.post('/update-trending',protect.protect, checkPermission(["admin"]), admi
 router.post('/get-count',protect.protect, checkPermission(["admin"]), adminController.getTotalCount);
 router.post('/update-product',protect.protect, checkPermission(["admin"]), adminController.updateProduct);
 router.post('/earning',protect.protect, checkPermission(["admin"]), adminController.getEarning);
+router.post('/delete-category',protect.protect, checkPermission(["admin"]), adminController.deleteCategory);
+router.post('/update-category',protect.protect, checkPermission(["admin"]), adminController.editCategory);
+router.post('/get-users',protect.protect, checkPermission(["admin"]), adminController.getUsers);
 
 module.exports = router;
