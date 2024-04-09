@@ -365,6 +365,10 @@ const editCategory = async (req, res) => {
     try {
         const { category_id, name, description } = req.body;
 
+        if(!category_id){
+            return res.send(error(400, 'Please provide category id'));
+        }
+
         const category = await Category.findById(category_id);
 
         if (!category) {
