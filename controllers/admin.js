@@ -250,8 +250,7 @@ const getTotalCount = async (req, res) => {
         const totalOrders = await Order.countDocuments();
         const totalProducts = await Product.countDocuments();
         const totalCategories = await Category.countDocuments();
-        const confirmedOrders = await Order.countDocuments({ status: 'confirmed' });
-        const pendingOrders = await Order.countDocuments({ status: 'pending' });
+        const pendingOrders = await Order.countDocuments({ status: 'confirmed' });
         const cancelledOrders = await Order.countDocuments({ status: 'cancelled' });
         const completedOrders = await Order.countDocuments({ status: 'completed' });
 
@@ -260,7 +259,6 @@ const getTotalCount = async (req, res) => {
             totalOrders,
             totalProducts,
             totalCategories,
-            confirmedOrders,
             pendingOrders,
             cancelledOrders,
             completedOrders
