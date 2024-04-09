@@ -15,8 +15,8 @@ const createCategory = async (req, res) => {
 
         const { name, description} = req.body;
 
-        if( !name || !description ){
-           return res.send(error(400, 'Please provide name and description'))
+        if( !name ){
+           return res.send(error(400, 'Please provide name'))
         }
 
         const category = await Category.create({
@@ -402,7 +402,7 @@ const getUsers = async (req, res) => {
         });
 
         return res.send(success(200, newUser));
-        
+
 
     } catch (error) {
 
