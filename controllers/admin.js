@@ -382,6 +382,8 @@ const editCategory = async (req, res) => {
             category.description = description;
         }
 
+        category.save();
+
         return res.send(success(200, category));
 
     } catch (error) {
