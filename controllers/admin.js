@@ -112,13 +112,12 @@ const updateProduct = async(req, res) => {
 const deleteProduct = async (req, res) => {
 
     try {
+        
         const { product_id } = req.body;
-        const product = await Product.findByIdAndDelete(product_id);
+        const product = await Product.findByIdAndUpdate(product_id, { archive: true });
         if (!product) {
            return res.send(error(404, 'Product not found'));
         }
-        
-
         return res.send(success(201, 'Product deleted successfully'));
     } catch (error) {
         return res.send(error(404, 'Product not found'));
@@ -248,7 +247,7 @@ const getTotalCount = async (req, res) => {
     try{
         const totalUsers = await User.countDocuments();
         const totalOrders = await Order.countDocuments();
-        const totalProducts = await Product.countDocuments();
+        const totalProducts = await Product.countDocuments({ archive: false});
         const totalCategories = await Category.countDocuments();
         const pendingOrders = await Order.countDocuments({ status: 'confirmed' });
         const cancelledOrders = await Order.countDocuments({ status: 'cancelled' });
