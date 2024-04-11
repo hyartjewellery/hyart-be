@@ -93,6 +93,7 @@ const getAllProducts = async (req, res) => {
 
        
         shuffleArray(productsWithCategoryNames);
+        shuffleArray(trendingProducts);
 
         return res.send(success(200, { allProducts: productsWithCategoryNames, trendingProducts: trendingProducts }));
     } catch (err) {
