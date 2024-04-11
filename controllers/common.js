@@ -79,6 +79,11 @@ const getAllProducts = async (req, res) => {
     try {
  
         const allProducts = await Product.find();
+        let trendingProducts = [];
+
+        if(req.body.trending){
+             trendingProducts = allProducts.filter(product => product.trending === true);
+        }
 
    
         const productsWithCategoryNames = await Promise.all(allProducts.map(async (product) => {
@@ -90,7 +95,7 @@ const getAllProducts = async (req, res) => {
         }));
 
    
-        return res.send(success(200, { allProducts: productsWithCategoryNames }));
+        return res.send(success(200, { allProducts: productsWithCategoryNames , trendingProducts: trendingProducts}));
     } catch (err) {
         return res.send(error(500, err.message));
     }

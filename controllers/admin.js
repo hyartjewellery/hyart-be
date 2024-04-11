@@ -415,8 +415,29 @@ const getUsers = async (req, res) => {
     }
 }
 
+const getOrders = async (req, res) => {
+    try {
+        const orders = await Order.find({ status: 'confirmed' })
+            .populate({
+                path: 'user_id',
+                model: 'User',
+                select: '-password -confirmPassword' 
+            })
+            .populate({
+                path: 'products.product_id',
+                model: 'Product'
+            });
 
+        if (!orders) {
+            return res.send(error(404, 'No orders found'));
+        }
 
+        return res.send(success(200, orders));
+
+    } catch (er) {
+        return res.send(error(500, 'Internal server error'));
+    }
+}
 
 
 module.exports = {
@@ -433,5 +454,6 @@ module.exports = {
     updateProduct,
     deleteCategory,
     editCategory,
-    getUsers
+    getUsers,
+    getOrders
 }
