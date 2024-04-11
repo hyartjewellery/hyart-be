@@ -75,17 +75,14 @@ const getProductByCatID = async (req, res, next) => {
 };
 
 const getAllProducts = async (req, res) => {
-    
     try {
- 
         const allProducts = await Product.find();
         let trendingProducts = [];
 
-        if(req.body.trending){
-             trendingProducts = allProducts.filter(product => product.trending === true);
+        if (req.body.trending) {
+            trendingProducts = allProducts.filter(product => product.trending === true);
         }
 
-   
         const productsWithCategoryNames = await Promise.all(allProducts.map(async (product) => {
             const category = await Category.findById(product.category_id);
             return {
@@ -94,12 +91,21 @@ const getAllProducts = async (req, res) => {
             };
         }));
 
-   
-        return res.send(success(200, { allProducts: productsWithCategoryNames , trendingProducts: trendingProducts}));
+       
+        shuffleArray(productsWithCategoryNames);
+
+        return res.send(success(200, { allProducts: productsWithCategoryNames, trendingProducts: trendingProducts }));
     } catch (err) {
         return res.send(error(500, err.message));
     }
 };
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
 
 
 module.exports = {getAllCategory, getProductByID, getProductByCatID, getAllProducts};
