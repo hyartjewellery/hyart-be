@@ -77,14 +77,22 @@ const updateProduct = async(req, res) => {
             return res.send(error(404, 'Product not found'));
         }
 
+        const previousPrice = product.price;
+
         if(name){
             product.name = name;
         }
         if(description){
             product.description = description;
         }
-        if(price){
+        if (price) {
+
             product.price = price;
+
+            await Order.updateMany(
+                { 'products.product_id': product_id },
+                { $set: { 'products.$.priceAtPurchase': price } }
+            );
         }
         if(image){
             const cloudImg = await cloudinary.uploader.upload(image, { folder: 'postImg' });
@@ -431,12 +439,21 @@ const getOrders = async (req, res) => {
             return res.send(error(404, 'No orders found'));
         }
 
-        return res.send(success(200, orders));
+     
+        const transformedOrders = orders.map(order => ({
+            ...order.toObject(),
+            products: order.products.map(product => ({
+                ...product.toObject(),
+                currentPrice: product.product_id.price,
+            })),
+        }));
 
-    } catch (er) {
+        return res.send(success(200, transformedOrders));
+    } catch (error) {
         return res.send(error(500, 'Internal server error'));
     }
 }
+
 
 const deliverCOD = async (req, res) => {
     try {
