@@ -17,6 +17,7 @@ const razorpay = new Razorpay({
 });
 
 const placeOrder = async (req, res) => {
+
     try {
         const { products, couponCode } = req.body;
    
@@ -120,7 +121,6 @@ const placeOrder = async (req, res) => {
         return res.send(error(500, err.message));
     }
 };
-
 
 const addToWishlist = async (req, res, next) => {
 
@@ -266,6 +266,102 @@ const getOrderStatus = async (req, res) => {
     }
 }
 
+const placeCODOrder = async (req, res) => {
+
+    try {
+
+        const { products, couponCode } = req.body;
+   
+        const user_id = req.user._id;
+        const user = await User.findById(user_id);
+       
+        if (!user) {
+            return res.send(error(404, 'User not found'));
+        }
+
+        let totalAmount = 0;
+
+        for (const { product_id, quantity } of products) {
+            const product = await Product.findById(product_id);
+      
+            if (!product) {
+                return res.send(error(404, 'Product not found'));
+            }
+
+            if (product.quantity < quantity) {
+                return res.send(error(404, 'Quantity not available'));
+            }
+
+            totalAmount += product.price * quantity;
+        }
+
+        let discountAmount = 0;
+        let couponApplied = false;
+        let couponDiscountAmount = 0;
+        if (couponCode) {
+            const coupon = await Coupon.findOne({ code: couponCode });
+
+            if (!coupon) {
+                return res.send(error(404, 'Coupon not found'));
+            }
+
+            const currentDate = new Date();
+            if (currentDate < coupon.validFrom || currentDate > coupon.validUntil) {
+                return res.send(error(400, 'Coupon is not valid at this time'));
+            }
+
+            const userCouponUsage = coupon.userUsage.find(u => u.userId.toString() === user_id.toString());
+            if (userCouponUsage && userCouponUsage.usedCount >= coupon.maxUses) {
+                return res.send(error(400, 'You have reached the maximum usage limit for this coupon'));
+            }
+
+            if (coupon.discountType === 'percentage') {
+                discountAmount = (totalAmount * coupon.discountAmount) / 100;
+            } 
+
+            couponApplied = true;
+            couponDiscountAmount = discountAmount;
+
+            if (userCouponUsage) {
+                userCouponUsage.usedCount++;
+            } else {
+                coupon.userUsage.push({ userId: user_id, usedCount: 1 });
+            }
+
+            await coupon.save();
+        }
+       
+        const finalAmount = totalAmount - discountAmount;
+
+        const order = {
+            user_id: user_id,
+            totalAmount: finalAmount,
+            status: 'confirmed',
+            products: products.map(({ product_id, quantity }) => ({ product_id, quantity })),
+            couponApplied: couponApplied,
+            couponDiscountAmount: couponDiscountAmount
+        };
+     
+        const createdOrder = await Order.create(order);
+        console.log("ORDER", createdOrder);
+
+        for (const { product_id, quantity } of products) {
+            await Product.findByIdAndUpdate(product_id, { $inc: { quantity: -quantity } });
+        }
+
+        await Payment.create({
+            order_id: createdOrder._id,
+            amount: finalAmount, 
+            status: 'pending', 
+            paymentMethod: 'cod', 
+        });
+
+        return res.send(success(200, 'Order placed successfully'));
+
+    } catch (error) {
+        return res.send(error(500, 'Internal server error'));
+    }
+}
 
 
 module.exports = {
@@ -275,5 +371,6 @@ module.exports = {
     placeOrder,
     listAllCoupons,
     getOrderStatus,
-    contactUs
+    contactUs,
+    placeCODOrder
 }

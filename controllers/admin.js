@@ -438,6 +438,47 @@ const getOrders = async (req, res) => {
     }
 }
 
+const deliverCOD = async (req, res) => {
+    try {
+
+        const { order_id } = req.body;
+
+        const order = await Order.findById(order_id);
+      
+
+        if (!order) {
+            return res.send(error(404, 'Order not found'));
+        }
+
+        if (order.status !== 'confirmed') {
+            return res.send(error(400, 'Order is not confirmed'));
+        }
+
+        const payment = await Payment.findOne({ order_id: order_id });
+        if (!payment) {
+            return res.send(error(404, 'Payment not found for this order'));
+        }
+
+        if (payment.paymentMethod !== 'cod') {
+
+            return res.send(error(400, 'Payment method is not COD'));
+
+        }
+
+        order.status = 'delivered';
+        payment.status = 'successful';
+        
+        await order.save();
+        await payment.save();
+
+        return res.send(success(200, {order, payment}));
+
+    } catch (error) {
+
+        return res.send(error(500, 'Internal server error'));
+    }
+}
+
 
 module.exports = {
     createCategory,
@@ -454,5 +495,6 @@ module.exports = {
     deleteCategory,
     editCategory,
     getUsers,
-    getOrders
+    getOrders,
+    deliverCOD
 }

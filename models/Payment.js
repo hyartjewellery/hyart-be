@@ -18,10 +18,11 @@ const paymentSchema = new mongoose.Schema({
     enum: ['pending', 'successful', 'failed'],
     default: 'pending'
   },
-  // paymentMethod: {
-  //   type: String,
-  //   required: true
-  // },
+  paymentMethod: {
+    type: String,
+    required: true,
+    enum: ['razorpay', 'cod']
+  },
   createdAt: {
     type: Date,
     default: Date.now
