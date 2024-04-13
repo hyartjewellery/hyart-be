@@ -13,10 +13,10 @@ const createCategory = async (req, res) => {
 
     try {
 
-        const { name, description} = req.body;
+        const { name, description } = req.body;
 
-        if( !name ){
-           return res.send(error(400, 'Please provide name'))
+        if (!name) {
+            return res.send(error(400, 'Please provide name'))
         }
 
         const category = await Category.create({
@@ -26,7 +26,7 @@ const createCategory = async (req, res) => {
 
         return res.send(success(201, category));
     } catch (error) {
-       return res.send(error(500, error.message));
+        return res.send(error(500, error.message));
     }
 }
 
@@ -35,7 +35,7 @@ const createProduct = async (req, res) => {
         const { category_id, name, description, price, image, quantity, trending } = req.body;
 
         if (!category_id || !name || !description || !price || !image || !quantity) {
-           return res.send(error(400, 'Please provide all required fields'));
+            return res.send(error(400, 'Please provide all required fields'));
         }
 
         const cloudImg = await cloudinary.uploader.upload(image, { folder: 'postImg' });
@@ -53,7 +53,7 @@ const createProduct = async (req, res) => {
             trending
         });
 
-       
+
         await Category.findByIdAndUpdate(category_id, { $push: { products: product._id } });
 
         return res.send(success(201, product));
@@ -62,27 +62,27 @@ const createProduct = async (req, res) => {
     }
 };
 
-const updateProduct = async(req, res) => {
+const updateProduct = async (req, res) => {
 
-    try{
+    try {
 
         const { product_id, name, description, price, image, quantity, trending } = req.body;
 
-        if(!product_id){
+        if (!product_id) {
             return res.send(error(400, 'Please provide product id'));
         }
 
         const product = await Product.findById(product_id);
-        if(!product){
+        if (!product) {
             return res.send(error(404, 'Product not found'));
         }
 
         const previousPrice = product.price;
 
-        if(name){
+        if (name) {
             product.name = name;
         }
-        if(description){
+        if (description) {
             product.description = description;
         }
         if (price) {
@@ -94,17 +94,17 @@ const updateProduct = async(req, res) => {
                 { $set: { 'products.$.priceAtPurchase': price } }
             );
         }
-        if(image){
+        if (image) {
             const cloudImg = await cloudinary.uploader.upload(image, { folder: 'postImg' });
             product.image = {
                 publicId: cloudImg.public_id,
                 url: cloudImg.url
             }
         }
-        if(quantity){
+        if (quantity) {
             product.quantity = quantity;
         }
-        if(trending){
+        if (trending) {
             product.trending = trending;
         }
 
@@ -112,7 +112,7 @@ const updateProduct = async(req, res) => {
 
         return res.send(success(200, product));
 
-    }catch(err){
+    } catch (err) {
         return res.send(error(500, 'Internal server error'));
     }
 }
@@ -120,11 +120,11 @@ const updateProduct = async(req, res) => {
 const deleteProduct = async (req, res) => {
 
     try {
-        
+
         const { product_id } = req.body;
         const product = await Product.findByIdAndUpdate(product_id, { archive: true });
         if (!product) {
-           return res.send(error(404, 'Product not found'));
+            return res.send(error(404, 'Product not found'));
         }
         return res.send(success(201, 'Product deleted successfully'));
     } catch (error) {
@@ -137,10 +137,10 @@ const getQueries = async (req, res) => {
     try {
         const queries = await Query.find();
 
-        if(!queries){
+        if (!queries) {
             return res.send(error(404, 'No queries found'));
         }
-        
+
         return res.send(success(200, queries));
     } catch (err) {
         return res.send(error(404, 'No queries found'));
@@ -157,7 +157,7 @@ const createCoupon = async (req, res) => {
             return res.send(error(400, 'Coupon already exists'));
         }
 
-    
+
         const coupon = await Coupon.create({
             code,
             discountType,
@@ -176,16 +176,22 @@ const createCoupon = async (req, res) => {
 
 const updateOrderStatus = async (req, res) => {
     try {
+
         const { order_id, status } = req.body;
+        console.log(order_id, status);
 
         const order = await Order.findByIdAndUpdate(order_id, { $set: { status } }, { new: true });
+
+        console.log(order);
 
         if (!order) {
             return res.send(error(404, 'Order not found'));
         }
 
+       
+
         return res.send(success(200, order));
-    } catch (error) {
+    } catch (err) {
         return res.send(error(500, 'Internal server error'));
     }
 };
@@ -252,14 +258,14 @@ const updateTrending = async (req, res) => {
 
 const getTotalCount = async (req, res) => {
 
-    try{
+    try {
         const totalUsers = await User.countDocuments();
         const totalOrders = await Order.countDocuments();
-        const totalProducts = await Product.countDocuments({ archive: false});
+        const totalProducts = await Product.countDocuments({ archive: false });
         const totalCategories = await Category.countDocuments();
         const pendingOrders = await Order.countDocuments({ status: 'confirmed' });
         const cancelledOrders = await Order.countDocuments({ status: 'cancelled' });
-        const completedOrders = await Order.countDocuments({ status: 'completed' });
+        const completedOrders = await Order.countDocuments({ status: 'delivered' });
 
         const ans = {
             totalUsers,
@@ -270,21 +276,21 @@ const getTotalCount = async (req, res) => {
             cancelledOrders,
             completedOrders
         }
-     
+
         return res.send(success(200, ans));
 
-    }catch (err){
+    } catch (err) {
         return res.send(error(500, 'Internal server error'));
     }
 }
 
 const getEarning = async (req, res) => {
     try {
-     
-        
+
+
         const { filter } = req.body;
 
-       
+
         const today = new Date();
         let filterObject = {};
 
@@ -338,7 +344,7 @@ const getEarning = async (req, res) => {
         const totalEarnings = result.length > 0 ? result[0].totalAmount : 0;
 
         // Return total earnings as API response
-        
+
         return res.send(success(200, { totalEarnings }));
     } catch (error) {
         console.error(error);
@@ -355,8 +361,8 @@ const deleteCategory = async (req, res) => {
             return res.send(error(404, 'Category not found'));
         }
 
-        if(category.products.length > 0){
-         return res.send(error(400, 'Category has products, cannot delete'));   
+        if (category.products.length > 0) {
+            return res.send(error(400, 'Category has products, cannot delete'));
         }
 
         await Category.findByIdAndDelete(category_id);
@@ -371,7 +377,7 @@ const editCategory = async (req, res) => {
     try {
         const { category_id, name, description } = req.body;
 
-        if(!category_id){
+        if (!category_id) {
             return res.send(error(400, 'Please provide category id'));
         }
 
@@ -424,32 +430,37 @@ const getUsers = async (req, res) => {
 
 const getOrders = async (req, res) => {
     try {
-        const orders = await Order.find({ status: 'confirmed' })
+
+        console.log('here');
+        const orders = await Order.find({})
             .populate({
                 path: 'user_id',
                 model: 'User',
-                select: '-password -confirmPassword' 
+                select: '-password -confirmPassword'
             })
             .populate({
                 path: 'products.product_id',
                 model: 'Product'
             });
 
+            // console.log(orders);
+
         if (!orders) {
             return res.send(error(404, 'No orders found'));
         }
 
-     
-        const transformedOrders = orders.map(order => ({
-            ...order.toObject(),
-            products: order.products.map(product => ({
-                ...product.toObject(),
-                currentPrice: product.product_id.price,
-            })),
-        }));
+        // const transformedOrders = orders.map(order => ({
+        //     ...order.toObject(),
+        //     products: order.products.map(product => ({
+        //         ...product.toObject(),
+        //         currentPrice: product.product_id.price,
+        //     })),
+        // }));
 
-        return res.send(success(200, transformedOrders));
-    } catch (error) {
+        // console.log(transformedOrders);
+
+        return res.send(success(200, orders));
+    } catch (err) {
         return res.send(error(500, 'Internal server error'));
     }
 }
@@ -461,7 +472,7 @@ const deliverCOD = async (req, res) => {
         const { order_id } = req.body;
 
         const order = await Order.findById(order_id);
-      
+
 
         if (!order) {
             return res.send(error(404, 'Order not found'));
@@ -484,13 +495,13 @@ const deliverCOD = async (req, res) => {
 
         order.status = 'delivered';
         payment.status = 'successful';
-        
+
         await order.save();
         await payment.save();
 
-        return res.send(success(200, {order, payment}));
+        return res.send(success(200, { order, payment }));
 
-    } catch (error) {
+    } catch (err) {
 
         return res.send(error(500, 'Internal server error'));
     }
