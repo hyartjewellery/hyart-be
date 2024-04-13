@@ -180,6 +180,14 @@ const updateOrderStatus = async (req, res) => {
         const { order_id, status } = req.body;
         console.log(order_id, status);
 
+        if (!order_id || !status) {
+            return res.send(error(400, 'Please provide order id and status'));
+        }
+
+        if(status === 'pending'){
+            return res.send(error(400, 'Invalid status'));
+        }
+
         const order = await Order.findByIdAndUpdate(order_id, { $set: { status } }, { new: true });
 
         console.log(order);
@@ -187,8 +195,6 @@ const updateOrderStatus = async (req, res) => {
         if (!order) {
             return res.send(error(404, 'Order not found'));
         }
-
-
 
         return res.send(success(200, order));
     } catch (err) {
@@ -466,8 +472,6 @@ const getOrders = async (req, res) => {
         return res.send(error(500, 'Internal server error'));
     }
 }
-
-
 const deliverCOD = async (req, res) => {
 
     try {
