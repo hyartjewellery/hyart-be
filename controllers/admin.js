@@ -188,7 +188,7 @@ const updateOrderStatus = async (req, res) => {
             return res.send(error(404, 'Order not found'));
         }
 
-       
+
 
         return res.send(success(200, order));
     } catch (err) {
@@ -431,7 +431,7 @@ const getUsers = async (req, res) => {
 const getOrders = async (req, res) => {
     try {
 
-        console.log('here');
+        
         const orders = await Order.find({})
             .populate({
                 path: 'user_id',
@@ -441,23 +441,25 @@ const getOrders = async (req, res) => {
             .populate({
                 path: 'products.product_id',
                 model: 'Product'
-            });
+            })
 
-            // console.log(orders);
+     
 
         if (!orders) {
             return res.send(error(404, 'No orders found'));
         }
 
-        // const transformedOrders = orders.map(order => ({
-        //     ...order.toObject(),
-        //     products: order.products.map(product => ({
-        //         ...product.toObject(),
-        //         currentPrice: product.product_id.price,
-        //     })),
-        // }));
+        const payment = await Payment.find({ order_id: { $in: orders.map(order => order._id) }});
+        console.log("PAYMENT",payment);
 
-        // console.log(transformedOrders);
+        if(!payment) {
+            return res.send(error(404, 'No payment found'));
+        }
+
+        orders.forEach(order => {
+            const paymentDetails = payment.find(p => p.order_id.toString() === order._id.toString());
+            order.payment = paymentDetails;
+        });
 
         return res.send(success(200, orders));
     } catch (err) {
@@ -467,6 +469,7 @@ const getOrders = async (req, res) => {
 
 
 const deliverCOD = async (req, res) => {
+
     try {
 
         const { order_id } = req.body;

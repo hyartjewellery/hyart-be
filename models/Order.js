@@ -14,7 +14,7 @@ const orderSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'],
-    default: 'pending'
+    // default: 'pending'
   },
   paymentId: {
     type: String
@@ -29,12 +29,16 @@ const orderSchema = new mongoose.Schema({
         type: Number,
         required: true
       },
-      priceAtPurchase: {
-        type: Number,
-        required: true
-      }
+      // priceAtPurchase: {
+      //   type: Number,
+      //   required: true
+      // }
     }
   ],
+  payment : {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Payment'
+  },
   createdAt: {
     type: Date,
     default: Date.now
