@@ -28,6 +28,10 @@ const placeOrder = async (req, res) => {
             return res.send(error(404, 'User not found'));
         }
 
+        if(!user.location.address && !user.location.city && !user.location.state && !user.location.pincode && !user.location.country){
+            return res.send(error(404, 'Please update your location before placing an order'));
+        }
+
         let totalAmount = 0;
 
         for (const { product_id, quantity } of products) {
@@ -278,11 +282,11 @@ const placeCODOrder = async (req, res) => {
         const user_id = req.user._id;
         const user = await User.findById(user_id);
 
-        if (!user) {
+        if (!user ) {
             return res.send(error(404, 'User not found'));
         }
 
-        if(!user.location){
+        if(!user.location.address && !user.location.city && !user.location.state && !user.location.pincode && !user.location.country){
             return res.send(error(404, 'Please update your location before placing an order'));
         }
 
