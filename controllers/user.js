@@ -273,9 +273,13 @@ const placeCODOrder = async (req, res) => {
    
         const user_id = req.user._id;
         const user = await User.findById(user_id);
-       
+
         if (!user) {
             return res.send(error(404, 'User not found'));
+        }
+
+        if(!user.location){
+            return res.send(error(404, 'Please update your location before placing an order'));
         }
 
         let totalAmount = 0;
@@ -293,6 +297,7 @@ const placeCODOrder = async (req, res) => {
 
             totalAmount += product.price * quantity;
         }
+
 
         let discountAmount = 0;
         let couponApplied = false;
@@ -329,8 +334,10 @@ const placeCODOrder = async (req, res) => {
 
             await coupon.save();
         }
+
        
         const finalAmount = totalAmount - discountAmount;
+
 
         const order = {
             user_id: user_id,
@@ -340,10 +347,10 @@ const placeCODOrder = async (req, res) => {
             couponApplied: couponApplied,
             couponDiscountAmount: couponDiscountAmount
         };
+
      
         const createdOrder = await Order.create(order);
-        console.log("ORDER", createdOrder);
-
+     
         for (const { product_id, quantity } of products) {
             await Product.findByIdAndUpdate(product_id, { $inc: { quantity: -quantity } });
         }
@@ -354,6 +361,7 @@ const placeCODOrder = async (req, res) => {
             status: 'pending', 
             paymentMethod: 'cod', 
         });
+
 
         return res.send(success(200, 'Order placed successfully'));
 
