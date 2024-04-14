@@ -430,7 +430,12 @@ const updateProfile = async (req, res) => {
         }
      
         const updatedUser = await User.findByIdAndUpdate(req.user._id, updateFields, { new: true });
+
         await user.save();
+
+        console.log("UPDATED USER", updatedUser)
+
+        
         updatedUser.password = undefined;
         updatedUser.confirmPassword = undefined;
 
