@@ -40,7 +40,7 @@ const getProductByCatID = async (req, res, next) => {
             return res.send(error(404, 'Category not found'));
         }
 
-        let query = { category_id: category_id };
+        let query = { category_id: category_id, archive: false};
 
         if (!filter) {
             products = await Product.find(query);
