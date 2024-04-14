@@ -1,4 +1,6 @@
 const User = require('../models/User');
+const { error, success } = require('../utils/responseWrapper');
+
 const checkPermission = (requiredRole) => {
 
     return async function (req, res, next) {
@@ -10,7 +12,9 @@ const checkPermission = (requiredRole) => {
         if (requiredRole.includes(userRole)) {
             next();
         } else {
-            res.status(403).json({ error: "You are unauthorized to perform this action" });
+           
+           return res.send(error(403, "You are unauthorized to perform this action"));
+            // res.status(403).json({ error: "You are unauthorized to perform this action" });
         }
     };
 };

@@ -37,6 +37,10 @@ const placeOrder = async (req, res) => {
                 return res.send(error(404, 'Product not found'));
             }
 
+            if(product.archive){
+                res.send(error(404, 'Product is not available'));
+            }
+
             if (product.quantity < quantity) {
                 return res.send(error(404, 'Quantity not available'));
             }
@@ -285,10 +289,15 @@ const placeCODOrder = async (req, res) => {
         let totalAmount = 0;
 
         for (const { product_id, quantity } of products) {
+
             const product = await Product.findById(product_id);
       
             if (!product) {
                 return res.send(error(404, 'Product not found'));
+            }
+
+            if(product.archive){
+                return res.send(error(404, 'Product is not available'));
             }
 
             if (product.quantity < quantity) {
@@ -342,7 +351,7 @@ const placeCODOrder = async (req, res) => {
         const order = {
             user_id: user_id,
             totalAmount: finalAmount,
-            status: 'confirmed',
+            status: 'pending',
             products: products.map(({ product_id, quantity }) => ({ product_id, quantity })),
             couponApplied: couponApplied,
             couponDiscountAmount: couponDiscountAmount
@@ -370,6 +379,24 @@ const placeCODOrder = async (req, res) => {
     }
 }
 
+const getOrders = async (req, res) => {
+    try {
+        const user_id = req.user._id;
+
+        const orders = await Order.find({ user_id: user_id }) .populate({
+            path: 'products.product_id',
+            model: 'Product',
+            select: 'name price image'
+        })
+
+        return res.send(success(200, orders));
+
+    } catch (error) {
+        return res.send(error(500, 'Internal server error'));
+    }
+}
+
+
 module.exports = {
     addToWishlist,
     getWishList,
@@ -378,5 +405,6 @@ module.exports = {
     listAllCoupons,
     getOrderStatus,
     contactUs,
-    placeCODOrder
+    placeCODOrder,
+    getOrders
 }

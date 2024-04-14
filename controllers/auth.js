@@ -428,13 +428,9 @@ const updateProfile = async (req, res) => {
                 country: country
             };
         }
-
      
         const updatedUser = await User.findByIdAndUpdate(req.user._id, updateFields, { new: true });
-
-        console.log("UPDATED USER", updatedUser)
-
-        
+        await user.save();
         updatedUser.password = undefined;
         updatedUser.confirmPassword = undefined;
 
@@ -444,8 +440,6 @@ const updateProfile = async (req, res) => {
         res.send(error(500, err.message));
     }
 }
-
-
 
 module.exports = {
     sendOtp,
