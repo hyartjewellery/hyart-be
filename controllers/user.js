@@ -208,7 +208,6 @@ const contactUs = async (req, res, next) => {
 
         }
 
-
         const user_id = req.user._id;
         const user = await User.findById(user_id);
         const user_name = user.name;
@@ -358,11 +357,10 @@ const placeCODOrder = async (req, res) => {
 
         return res.send(success(200, 'Order placed successfully'));
 
-    } catch (error) {
+    } catch (err) {
         return res.send(error(500, 'Internal server error'));
     }
 }
-
 
 module.exports = {
     addToWishlist,
