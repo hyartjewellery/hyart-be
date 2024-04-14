@@ -380,6 +380,23 @@ const placeCODOrder = async (req, res) => {
     }
 }
 
+const getOrders = async (req, res) => {
+    try {
+        const user_id = req.user._id;
+
+        const orders = await Order.find({ user_id: user_id }) .populate({
+            path: 'products.product_id',
+            model: 'Product',
+            select: 'name price image'
+        })
+
+        return res.send(success(200, orders));
+
+    } catch (error) {
+        return res.send(error(500, 'Internal server error'));
+    }
+}
+
 
 module.exports = {
     addToWishlist,
@@ -389,5 +406,6 @@ module.exports = {
     listAllCoupons,
     getOrderStatus,
     contactUs,
-    placeCODOrder
+    placeCODOrder,
+    getOrders
 }
