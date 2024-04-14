@@ -293,10 +293,7 @@ const getTotalCount = async (req, res) => {
 const getEarning = async (req, res) => {
     try {
 
-
         const { filter } = req.body;
-
-
         const today = new Date();
         let filterObject = {};
 
@@ -472,11 +469,16 @@ const getOrders = async (req, res) => {
         return res.send(error(500, 'Internal server error'));
     }
 }
+
 const deliverCOD = async (req, res) => {
 
     try {
 
-        const { order_id } = req.body;
+        const { order_id , status} = req.body;
+
+        if (!order_id || !status === "delivered") {
+            return res.send(error(400, 'Please provide order id'));
+        }
 
         const order = await Order.findById(order_id);
 
@@ -485,8 +487,8 @@ const deliverCOD = async (req, res) => {
             return res.send(error(404, 'Order not found'));
         }
 
-        if (order.status !== 'confirmed') {
-            return res.send(error(400, 'Order is not confirmed'));
+        if (order.status !== 'pending' || order.status !== 'shipped') {
+            return res.send(error(400, 'Order is not placed or shipped yet'));
         }
 
         const payment = await Payment.findOne({ order_id: order_id });
