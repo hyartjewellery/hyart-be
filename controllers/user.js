@@ -351,7 +351,7 @@ const placeCODOrder = async (req, res) => {
         const order = {
             user_id: user_id,
             totalAmount: finalAmount,
-            status: 'pending',
+            status: 'confirmed',
             products: products.map(({ product_id, quantity }) => ({ product_id, quantity })),
             couponApplied: couponApplied,
             couponDiscountAmount: couponDiscountAmount

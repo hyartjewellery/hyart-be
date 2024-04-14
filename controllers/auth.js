@@ -385,9 +385,7 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {   
     try {
 
-
         const user = await User.findById(req.user._id);
-        console.log(user);
 
         if (!user) {
             return res.send(error(404, 'User not found'));
@@ -395,7 +393,6 @@ const updateProfile = async (req, res) => {
 
         let updateFields = {};
 
-       console.log("CHECKING", req.body.image);
         if (req.body.image) {
             const cloudImg = await cloudinary.uploader.upload(req.body.image, { folder: 'postImg' });
             updateFields.userAvatar = {
@@ -403,17 +400,11 @@ const updateProfile = async (req, res) => {
                 url: cloudImg.url
             };
         }
-
-        console.log("CHECKING", req.body.location);
-
-      
+  
         if (req.body.location) {
 
-            console.log("CHECKING", req.body.location);
 
             const { city, state, pincode, address, country } = req.body.location;
-
-            console.log("CHECKING", city, state, pincode, address, country)
 
          
             if (!city || !state || !pincode || !address || !country) {
@@ -433,9 +424,6 @@ const updateProfile = async (req, res) => {
 
         await user.save();
 
-        console.log("UPDATED USER", updatedUser)
-
-        
         updatedUser.password = undefined;
         updatedUser.confirmPassword = undefined;
 
