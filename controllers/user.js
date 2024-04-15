@@ -10,6 +10,7 @@ const userConfirmationTemplate = require('../utils/template/userConfirmation');
 const contactUsTemplate = require('../utils/template/contactUs');
 const mailSender = require('../utils/mailSender');
 const { error, success } = require('../utils/responseWrapper');
+const orderConfirmationTemplate = require('../utils/template/orderConfirmation');
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_ID,
@@ -20,15 +21,15 @@ const placeOrder = async (req, res) => {
 
     try {
         const { products, couponCode } = req.body;
-   
+
         const user_id = req.user._id;
         const user = await User.findById(user_id);
-       
+
         if (!user) {
             return res.send(error(404, 'User not found'));
         }
 
-        if(!user.location.address && !user.location.city && !user.location.state && !user.location.pincode && !user.location.country){
+        if (!user.location.address && !user.location.city && !user.location.state && !user.location.pincode && !user.location.country) {
             return res.send(error(404, 'Please update your location before placing an order'));
         }
 
@@ -36,12 +37,12 @@ const placeOrder = async (req, res) => {
 
         for (const { product_id, quantity } of products) {
             const product = await Product.findById(product_id);
-      
+
             if (!product) {
                 return res.send(error(404, 'Product not found'));
             }
 
-            if(product.archive){
+            if (product.archive) {
                 res.send(error(404, 'Product is not available'));
             }
 
@@ -52,7 +53,7 @@ const placeOrder = async (req, res) => {
             totalAmount += product.price * quantity;
         }
 
-       
+
 
         let discountAmount = 0;
         let couponApplied = false;
@@ -76,7 +77,7 @@ const placeOrder = async (req, res) => {
 
             if (coupon.discountType === 'percentage') {
                 discountAmount = (totalAmount * coupon.discountAmount) / 100;
-            } 
+            }
 
             couponApplied = true;
             couponDiscountAmount = discountAmount;
@@ -89,7 +90,7 @@ const placeOrder = async (req, res) => {
 
             await coupon.save();
         }
-       
+
         const finalAmount = totalAmount - discountAmount;
 
 
@@ -101,26 +102,38 @@ const placeOrder = async (req, res) => {
             couponApplied: couponApplied,
             couponDiscountAmount: couponDiscountAmount
         };
-     
+
         const createdOrder = await Order.create(order);
 
         for (const { product_id, quantity } of products) {
             await Product.findByIdAndUpdate(product_id, { $inc: { quantity: -quantity } });
         }
-      
+
         const razorpayOrder = await razorpay.orders.create({
-            amount: finalAmount * 100, 
+            amount: finalAmount * 100,
             currency: 'INR',
-            receipt: createdOrder._id.toString(), 
+            receipt: createdOrder._id.toString(),
             payment_capture: 1
         });
 
         await Payment.create({
             order_id: createdOrder._id,
-            amount: finalAmount, 
-            status: 'pending', 
-            paymentMethod: 'razorpay', 
+            amount: finalAmount,
+            status: 'pending',
+            paymentMethod: 'razorpay',
         });
+
+        await mailSender(
+            user.email,
+            'Order Confirmed',
+            orderConfirmationTemplate(
+                user.name,
+                createdOrder._id,
+                new Date().toLocaleDateString(),
+                finalAmount,
+                user.location.address
+            )
+        );
 
         return res.send(success(200, razorpayOrder));
 
@@ -139,7 +152,7 @@ const addToWishlist = async (req, res, next) => {
         const user = await User.findById(user_id);
 
         if (!user) {
-           return res.send(error(404, 'User not found'));
+            return res.send(error(404, 'User not found'));
         }
 
         if (user.wishList.includes(product_id)) {
@@ -148,7 +161,7 @@ const addToWishlist = async (req, res, next) => {
 
         await User.findByIdAndUpdate(user_id, { $push: { wishList: product_id } });
 
-        return res.send(success(200,'Product added to wishlist'));
+        return res.send(success(200, 'Product added to wishlist'));
 
     } catch (err) {
         return res.send(error(404, err.message));
@@ -167,7 +180,7 @@ const getWishList = async (req, res, next) => {
             return res.send(error(404, 'User not found'));
         }
 
-        return res.send(success(200,data.wishList));
+        return res.send(success(200, data.wishList));
 
     } catch (err) {
         return res.send(error(404, err.message));
@@ -193,7 +206,7 @@ const removeFromWishList = async (req, res, next) => {
 
         await User.findByIdAndUpdate(user_id, { $pull: { wishList: product_id } });
 
-        return res.send(success(200,'Product removed from wishlist'));
+        return res.send(success(200, 'Product removed from wishlist'));
 
     } catch (err) {
         return res.send(error(404, err.message));
@@ -223,13 +236,13 @@ const contactUs = async (req, res, next) => {
             return res.send(error(404, 'User not found'));
         }
 
-        if(email != user.email) {
+        if (email != user.email) {
             return res.send(error(404, 'Email does not match with the logged in user'));
         }
-        const name = req.user.name; 
+        const name = req.user.name;
         const userConfirmationBody = userConfirmationTemplate(name);
         await mailSender(email, 'Contact Form Submission Confirmation', userConfirmationBody);
-        await mailSender(admin,'User Query', contactUsTemplate(email, user_name, subject, message));;
+        await mailSender(admin, 'User Query', contactUsTemplate(email, user_name, subject, message));;
 
         const query = {
             name: user_name,
@@ -240,7 +253,7 @@ const contactUs = async (req, res, next) => {
 
         await Query.create(query);
 
-        return res.send(success(200,'Query submitted successfully'));
+        return res.send(success(200, 'Query submitted successfully'));
     } catch (err) {
         return res.send(error(404, err.message));
     }
@@ -248,7 +261,7 @@ const contactUs = async (req, res, next) => {
 
 const listAllCoupons = async (req, res) => {
     try {
-        const coupons = await Coupon.find();        
+        const coupons = await Coupon.find();
         return res.send(success(200, coupons));
     } catch (err) {
         return res.send(error(404, err.message));
@@ -277,15 +290,15 @@ const placeCODOrder = async (req, res) => {
     try {
 
         const { products, couponCode } = req.body;
-   
+
         const user_id = req.user._id;
         const user = await User.findById(user_id);
 
-        if (!user ) {
+        if (!user) {
             return res.send(error(404, 'User not found'));
         }
 
-        if(!user.location.address && !user.location.city && !user.location.state && !user.location.pincode && !user.location.country){
+        if (!user.location.address && !user.location.city && !user.location.state && !user.location.pincode && !user.location.country) {
             return res.send(error(404, 'Please update your location before placing an order'));
         }
 
@@ -294,12 +307,12 @@ const placeCODOrder = async (req, res) => {
         for (const { product_id, quantity } of products) {
 
             const product = await Product.findById(product_id);
-      
+
             if (!product) {
                 return res.send(error(404, 'Product not found'));
             }
 
-            if(product.archive){
+            if (product.archive) {
                 return res.send(error(404, 'Product is not available'));
             }
 
@@ -333,7 +346,7 @@ const placeCODOrder = async (req, res) => {
 
             if (coupon.discountType === 'percentage') {
                 discountAmount = (totalAmount * coupon.discountAmount) / 100;
-            } 
+            }
 
             couponApplied = true;
             couponDiscountAmount = discountAmount;
@@ -347,7 +360,7 @@ const placeCODOrder = async (req, res) => {
             await coupon.save();
         }
 
-       
+
         const finalAmount = totalAmount - discountAmount;
 
 
@@ -360,19 +373,31 @@ const placeCODOrder = async (req, res) => {
             couponDiscountAmount: couponDiscountAmount
         };
 
-     
+
         const createdOrder = await Order.create(order);
-     
+
         for (const { product_id, quantity } of products) {
             await Product.findByIdAndUpdate(product_id, { $inc: { quantity: -quantity } });
         }
 
         await Payment.create({
             order_id: createdOrder._id,
-            amount: finalAmount, 
-            status: 'pending', 
-            paymentMethod: 'cod', 
+            amount: finalAmount,
+            status: 'pending',
+            paymentMethod: 'cod',
         });
+
+        await mailSender(
+            user.email,
+            'Order Confirmed',
+            orderConfirmationTemplate(
+                user.name,
+                createdOrder._id,
+                new Date().toLocaleDateString(),
+                finalAmount,
+                user.location.address
+            )
+        );
 
 
         return res.send(success(200, 'Order placed successfully'));
@@ -386,7 +411,7 @@ const getOrders = async (req, res) => {
     try {
         const user_id = req.user._id;
 
-        const orders = await Order.find({ user_id: user_id }) .populate({
+        const orders = await Order.find({ user_id: user_id }).populate({
             path: 'products.product_id',
             model: 'Product',
             select: 'name price image'

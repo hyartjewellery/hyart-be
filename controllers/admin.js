@@ -7,6 +7,8 @@ const Order = require('../models/Order');
 const User = require('../models/User');
 const Payment = require('../models/Payment');
 const { error, success } = require('../utils/responseWrapper');
+const mailSender = require('../utils/mailSender');
+const orderStatus = require('../utils/template/orderStatus');
 
 
 const createCategory = async (req, res) => {
@@ -179,19 +181,64 @@ const updateOrderStatus = async (req, res) => {
 
         const { order_id, status } = req.body;
 
+        console.log(order_id, status);
+
+
         if (!order_id || !status) {
             return res.send(error(400, 'Please provide order id and status'));
         }
 
-        if(status === 'pending'){
+        if (status !== 'shipped' && status !== 'delivered' && status !== 'cancelled') {
+
             return res.send(error(400, 'Invalid status'));
+
         }
 
-        const order = await Order.findByIdAndUpdate(order_id, { $set: { status } }, { new: true });
+        console.log("CROSS")
+
+        
+        const order = await Order.findById(order_id);
 
         if (!order) {
             return res.send(error(404, 'Order not found'));
         }
+
+        const productDetails = await Promise.all(order.products.map(async (product) => {
+            console.log("PRODUCT", product);
+            const productDoc = await Product.findById(product.product_id);
+            console.log("PRODUCTDOC", productDoc);
+            return `${productDoc.name} (Quantity: ${product.quantity})`;
+        }));
+
+        console.log("PRODUCTS", productDetails.join('\n'));
+
+        let statusMessage;
+        if (status === 'shipped') {
+            statusMessage = 'Your product has been shipped!';
+        } else if (status === 'delivered') {
+            statusMessage = 'Your product has been delivered!';
+        } else if (status === 'cancelled') {
+            statusMessage = 'Your product has been cancelled!';
+        }
+
+        console.log("STATUS", statusMessage)
+
+        order.status = status;
+        await order.save();
+
+        const user = await User.findById(order.user_id);
+
+        console.log("ORDER", order);
+
+        await mailSender(
+            user.email,
+            `Order ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+            orderStatus(user.name, order._id, statusMessage, productDetails.join('\n'))
+        );
+
+        console.log("MAIL SENT");
+
+      
 
         return res.send(success(200, order));
     } catch (err) {
@@ -431,7 +478,7 @@ const getUsers = async (req, res) => {
 const getOrders = async (req, res) => {
     try {
 
-        
+
         const orders = await Order.find({})
             .populate({
                 path: 'user_id',
@@ -443,15 +490,15 @@ const getOrders = async (req, res) => {
                 model: 'Product'
             })
 
-     
+
 
         if (!orders) {
             return res.send(error(404, 'No orders found'));
         }
 
-        const payment = await Payment.find({ order_id: { $in: orders.map(order => order._id) }});
+        const payment = await Payment.find({ order_id: { $in: orders.map(order => order._id) } });
 
-        if(!payment) {
+        if (!payment) {
             return res.send(error(404, 'No payment found'));
         }
 
@@ -470,7 +517,7 @@ const deliverCOD = async (req, res) => {
 
     try {
 
-        const { order_id , status} = req.body;
+        const { order_id, status } = req.body;
 
         if (!order_id || !status === "delivered") {
             return res.send(error(400, 'Please provide order id'));
