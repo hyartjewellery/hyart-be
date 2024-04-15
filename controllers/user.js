@@ -103,7 +103,6 @@ const placeOrder = async (req, res) => {
         };
      
         const createdOrder = await Order.create(order);
-        console.log("ORDER", createdOrder);
 
         for (const { product_id, quantity } of products) {
             await Product.findByIdAndUpdate(product_id, { $inc: { quantity: -quantity } });

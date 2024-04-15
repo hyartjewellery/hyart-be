@@ -178,7 +178,6 @@ const updateOrderStatus = async (req, res) => {
     try {
 
         const { order_id, status } = req.body;
-        console.log(order_id, status);
 
         if (!order_id || !status) {
             return res.send(error(400, 'Please provide order id and status'));
@@ -189,8 +188,6 @@ const updateOrderStatus = async (req, res) => {
         }
 
         const order = await Order.findByIdAndUpdate(order_id, { $set: { status } }, { new: true });
-
-        console.log(order);
 
         if (!order) {
             return res.send(error(404, 'Order not found'));
@@ -453,7 +450,6 @@ const getOrders = async (req, res) => {
         }
 
         const payment = await Payment.find({ order_id: { $in: orders.map(order => order._id) }});
-        console.log("PAYMENT",payment);
 
         if(!payment) {
             return res.send(error(404, 'No payment found'));
