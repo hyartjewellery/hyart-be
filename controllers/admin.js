@@ -159,6 +159,10 @@ const createCoupon = async (req, res) => {
             return res.send(error(400, 'Coupon already exists'));
         }
 
+        if (discountAmount > 50){
+            return res.send(error(400, 'Discount amount cannot be more than 50%'));
+        }
+        
         const coupon = await Coupon.create({
             code,
             discountType,
