@@ -259,15 +259,6 @@ const contactUs = async (req, res, next) => {
     }
 };
 
-const listAllCoupons = async (req, res) => {
-    try {
-        const coupons = await Coupon.find();
-        return res.send(success(200, coupons));
-    } catch (err) {
-        return res.send(error(404, err.message));
-    }
-};
-
 const getOrderStatus = async (req, res) => {
     try {
         const { order_id } = req.body;
@@ -430,7 +421,6 @@ module.exports = {
     getWishList,
     removeFromWishList,
     placeOrder,
-    listAllCoupons,
     getOrderStatus,
     contactUs,
     placeCODOrder,

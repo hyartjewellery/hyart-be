@@ -109,5 +109,13 @@ function shuffleArray(array) {
     }
 }
 
+const listAllCoupons = async (req, res) => {
+    try {
+        const coupons = await Coupon.find();
+        return res.send(success(200, coupons));
+    } catch (err) {
+        return res.send(error(404, err.message));
+    }
+};
 
-module.exports = {getAllCategory, getProductByID, getProductByCatID, getAllProducts};
+module.exports = {getAllCategory, getProductByID, getProductByCatID, getAllProducts, listAllCoupons};

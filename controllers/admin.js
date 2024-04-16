@@ -158,11 +158,13 @@ const createCoupon = async (req, res) => {
         if (existingCoupon) {
             return res.send(error(400, 'Coupon already exists'));
         }
+        console.log("CROSS")
 
         if (discountAmount > 50){
             return res.send(error(400, 'Discount amount cannot be more than 50%'));
         }
-        
+
+        console.log("CROSS2")
         const coupon = await Coupon.create({
             code,
             discountType,
@@ -171,8 +173,10 @@ const createCoupon = async (req, res) => {
             validUntil,
         });
 
+        console.log("CROSS3", coupon)
+
         return res.send(success(201, coupon));
-    } catch (error) {
+    } catch (err) {
         console.error(error);
         return res.send(error(500, 'Internal server error'));
     }
