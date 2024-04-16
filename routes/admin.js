@@ -20,5 +20,6 @@ router.post('/update-category',protect.protect, checkPermission(["admin"]), admi
 router.post('/get-users',protect.protect, checkPermission(["admin"]), adminController.getUsers);
 router.post('/get-orders',protect.protect, checkPermission(["admin"]), adminController.getOrders);
 router.post('/delivered-cod',protect.protect, checkPermission(["admin"]), adminController.deliverCOD);
+router.post('/delete-coupon',protect.protect, checkPermission(["admin"]), adminController.deleteCoupon);
 
 module.exports = router;

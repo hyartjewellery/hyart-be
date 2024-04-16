@@ -152,13 +152,12 @@ const getQueries = async (req, res) => {
 
 const createCoupon = async (req, res) => {
     try {
-        const { code, discountType, discountAmount, validFrom, validUntil, maxUses } = req.body;
+        const { code, discountType, discountAmount, validFrom, validUntil } = req.body;
 
         const existingCoupon = await Coupon.findOne({ code });
         if (existingCoupon) {
             return res.send(error(400, 'Coupon already exists'));
         }
-
 
         const coupon = await Coupon.create({
             code,
@@ -166,7 +165,6 @@ const createCoupon = async (req, res) => {
             discountAmount,
             validFrom,
             validUntil,
-            maxUses
         });
 
         return res.send(success(201, coupon));
@@ -559,6 +557,26 @@ const deliverCOD = async (req, res) => {
     }
 }
 
+const deleteCoupon = async (req, res) => {
+
+    try {
+
+        const { coupon_id } = req.body;
+
+        const coupon = await Coupon.findByIdAndDelete(coupon_id);
+
+        if (!coupon) {
+            return res.send(error(404, 'Coupon not found'));
+        }
+
+        return res.send(success(201, 'Coupon deleted successfully'));
+
+    } catch (err) {
+        return res.send(error(500, 'Internal server error'));
+    }
+
+}
+
 
 module.exports = {
     createCategory,
@@ -576,5 +594,6 @@ module.exports = {
     editCategory,
     getUsers,
     getOrders,
-    deliverCOD
+    deliverCOD,
+    deleteCoupon
 }
