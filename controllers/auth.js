@@ -7,6 +7,7 @@ const otpGenerator = require('otp-generator');
 const mailSender = require('../utils/mailSender');
 const passwordUpdated = require('../utils/template/passwordUpdate');
 const welcomeEmail = require('../utils/template/welcome');
+const cloudinary = require('cloudinary').v2;
 const crypto = require('crypto');
 
 const sendOtp = async (req, res) => {
