@@ -194,9 +194,9 @@ const updateOrderStatus = async (req, res) => {
             return res.send(error(400, 'Please provide order id and status'));
         }
 
-        if (status !== 'shipped' && status !== 'delivered' && status !== 'cancelled') {
+        if (status !== 'shipped' || status !== 'delivered' || status !== 'cancelled') {
 
-            return res.send(error(400, 'Invalid status'));
+            return res.send(error(400, 'Invalid statussssss'));
 
         }
 
@@ -319,6 +319,7 @@ const getTotalCount = async (req, res) => {
         const totalOrders = await Order.countDocuments();
         const totalProducts = await Product.countDocuments({ archive: false });
         const totalCategories = await Category.countDocuments();
+        const totalCoupons = await Coupon.countDocuments();
         const pendingOrders = await Order.countDocuments({ status: 'confirmed' });
         const cancelledOrders = await Order.countDocuments({ status: 'cancelled' });
         const completedOrders = await Order.countDocuments({ status: 'delivered' });
@@ -330,7 +331,8 @@ const getTotalCount = async (req, res) => {
             totalCategories,
             pendingOrders,
             cancelledOrders,
-            completedOrders
+            completedOrders,
+            totalCoupons
         }
 
         return res.send(success(200, ans));
@@ -536,8 +538,8 @@ const deliverCOD = async (req, res) => {
             return res.send(error(404, 'Order not found'));
         }
 
-        if (order.status !== 'pending' || order.status !== 'shipped') {
-            return res.send(error(400, 'Order is not placed or shipped yet'));
+        if ( order.status != 'shipped') {
+            return res.send(error(400, 'Order is not shipped yet'));
         }
 
         const payment = await Payment.findOne({ order_id: order_id });

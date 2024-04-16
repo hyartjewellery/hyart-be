@@ -1,5 +1,6 @@
 const Category = require('../models/Category');
 const Product = require('../models/Product');
+const Coupon = require('../models/Coupon');
 const { error, success } = require('../utils/responseWrapper');
 
 const getAllCategory = async (req, res, next) => {

@@ -331,7 +331,7 @@ const placeCODOrder = async (req, res) => {
             }
 
             const userCouponUsage = coupon.userUsage.find(u => u.userId.toString() === user_id.toString());
-            if (userCouponUsage && userCouponUsage.usedCount >= coupon.maxUses) {
+            if (userCouponUsage && userCouponUsage.usedCount >= userCouponUsage.usedCount) {
                 return res.send(error(400, 'You have reached the maximum usage limit for this coupon'));
             }
 
