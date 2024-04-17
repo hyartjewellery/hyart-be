@@ -244,7 +244,7 @@ const forgotPassword = async (req, res) => {
             { new: true }
         );
 
-        const url = `http://localhost:3000/update-password/${token}`;
+        const url = `http://localhost:3000/reset-password/${token}`;
         const message = `Click on the link below to reset your password:\n\n${url}`;
 
         await mailSender(
