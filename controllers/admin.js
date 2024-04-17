@@ -184,23 +184,21 @@ const createCoupon = async (req, res) => {
 
 const updateOrderStatus = async (req, res) => {
     try {
+        const { order_id, status, trackingID } = req.body;
 
-        const { order_id, status , trackingID} = req.body;
+        console.log("ORDERID", order_id, status, trackingID);
 
         if (!order_id || !status) {
             return res.send(error(400, 'Please provide order id and status'));
         }
 
-        if (status !== 'shipped' || status !== 'delivered' || status !== 'cancelled') {
-
-            return res.send(error(400, 'Invalid statussssss'));
-
+        if (status !== 'shipped' && status !== 'delivered' && status !== 'cancelled') {
+            return res.send(error(400, 'Invalid status'));
         }
 
-
-        if(req.body.status === 'shipped' && !req.body.trackingID) {
+        if (req.body.status === 'shipped' && !req.body.trackingID) {
             if (!trackingID) {
-                res.send(error(400, 'Please provide tracking ID for shipped status'));
+                return res.send(error(400, 'Please provide tracking ID for shipped status'));
             }
         }
 
@@ -211,13 +209,9 @@ const updateOrderStatus = async (req, res) => {
         }
 
         const productDetails = await Promise.all(order.products.map(async (product) => {
-            console.log("PRODUCT", product);
             const productDoc = await Product.findById(product.product_id);
-            console.log("PRODUCTDOC", productDoc);
             return `${productDoc.name} (Quantity: ${product.quantity})`;
         }));
-
-        console.log("PRODUCTS", productDetails.join('\n'));
 
         let statusMessage;
         if (status === 'shipped') {
@@ -228,28 +222,22 @@ const updateOrderStatus = async (req, res) => {
             statusMessage = 'Your product has been cancelled!';
         }
 
-        console.log("STATUS", statusMessage)
-
         order.status = status;
         order.trackingId = trackingID;
         await order.save();
 
         const user = await User.findById(order.user_id);
 
-        console.log("ORDER", order);
-
         await mailSender(
             user.email,
             `Order ${status.charAt(0).toUpperCase() + status.slice(1)}`,
-            orderStatus(user.name,trackingID, order._id, statusMessage, productDetails.join('\n'))
+            orderStatus(user.name, trackingID, order._id, statusMessage, productDetails.join('\n'))
         );
 
         console.log("MAIL SENT");
-
-      
-
         return res.send(success(200, order));
     } catch (err) {
+        console.error(err);
         return res.send(error(500, 'Internal server error'));
     }
 };
