@@ -1,4 +1,4 @@
-const orderStatusTemplate = (customerName, orderId, statusMessage, productDetails) => {
+const orderStatusTemplate = (customerName,trackingID, orderId, statusMessage, productDetails) => {
     return `<!DOCTYPE html>
     <html>
     <head>
@@ -65,6 +65,10 @@ const orderStatusTemplate = (customerName, orderId, statusMessage, productDetail
                     <p><strong>Product Details:</strong></p>
                     ${productDetails}
                 </div>
+                ${
+                    statusMessage === 'Your order has been shipped!' ? 
+                    `<p>You can track your order using this Tracking ID :${trackingID}.</p>` : ''
+                }
                 <p>Thank you for choosing us!</p>
             </div>
             <div class="support">If you have any questions or need assistance, please feel free to contact us at <a href="mailto:anandsupragya@gmail.com">anandsupragya@gmail.com</a>. We're here to help!</div>

@@ -53,6 +53,9 @@ const orderSchema = new mongoose.Schema({
   couponDiscountAmount: {
     type: Number,
     default: 0
+  },
+  trackingId:{
+    type: String
   }
 });
 

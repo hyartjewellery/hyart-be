@@ -185,10 +185,7 @@ const createCoupon = async (req, res) => {
 const updateOrderStatus = async (req, res) => {
     try {
 
-        const { order_id, status } = req.body;
-
-        console.log(order_id, status);
-
+        const { order_id, status , trackingID} = req.body;
 
         if (!order_id || !status) {
             return res.send(error(400, 'Please provide order id and status'));
@@ -200,9 +197,13 @@ const updateOrderStatus = async (req, res) => {
 
         }
 
-        console.log("CROSS")
 
-        
+        if(req.body.status === 'shipped' && !req.body.trackingID) {
+            if (!trackingID) {
+                res.send(error(400, 'Please provide tracking ID for shipped status'));
+            }
+        }
+
         const order = await Order.findById(order_id);
 
         if (!order) {
@@ -230,6 +231,7 @@ const updateOrderStatus = async (req, res) => {
         console.log("STATUS", statusMessage)
 
         order.status = status;
+        order.trackingId = trackingID;
         await order.save();
 
         const user = await User.findById(order.user_id);
@@ -239,7 +241,7 @@ const updateOrderStatus = async (req, res) => {
         await mailSender(
             user.email,
             `Order ${status.charAt(0).toUpperCase() + status.slice(1)}`,
-            orderStatus(user.name, order._id, statusMessage, productDetails.join('\n'))
+            orderStatus(user.name,trackingID, order._id, statusMessage, productDetails.join('\n'))
         );
 
         console.log("MAIL SENT");
