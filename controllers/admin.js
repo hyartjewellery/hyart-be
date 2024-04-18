@@ -200,11 +200,11 @@ const updateOrderStatus = async (req, res) => {
 
         let statusMessage;
         if (status === 'shipped') {
-            statusMessage = 'Your product has been shipped!';
+            statusMessage = 'Your order has been shipped!';
         } else if (status === 'delivered') {
-            statusMessage = 'Your product has been delivered!';
+            statusMessage = 'Your order has been delivered!';
         } else if (status === 'cancelled') {
-            statusMessage = 'Your product has been cancelled!';
+            statusMessage = 'Your order has been cancelled!';
         }
 
         order.status = status;
