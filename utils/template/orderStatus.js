@@ -67,7 +67,7 @@ const orderStatusTemplate = (customerName,trackingID, orderId, statusMessage, pr
                 </div>
                 ${
                     statusMessage === 'Your order has been shipped!' ? 
-                    `<p>You can track your order using this Tracking ID: ${trackingID}.</p>` : ''
+                    `<p>You can track your order using this Tracking ID: ${trackingID}</p>` : ''
                 }
                 <p>Thank you for choosing us!</p>
             </div>
