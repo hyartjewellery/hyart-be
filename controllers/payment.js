@@ -7,7 +7,7 @@ const Order = require('../models/Order');
 const paymentVerification = async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
-        const { orderCreationId, razorpay_order_id, razorpay_payment_id, razorpay_signature, amount, receipt } = req.body;
+        const { orderCreationId, razorpay_order_id, razorpay_payment_id, razorpay_signature, amount, receipt , paymentMethod } = req.body;
         const body = orderCreationId + "|" + razorpay_payment_id;
 
         const expectedSignature = crypto
@@ -32,6 +32,7 @@ const paymentVerification = async (req, res) => {
                 razorpay_order_id,
                 razorpay_payment_id,
                 razorpay_signature,
+                paymentMethod,
                 amount,
                 status: 'successful'
             });
