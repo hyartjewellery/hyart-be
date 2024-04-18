@@ -6,5 +6,7 @@ router.post('/product', commonController.getProductByID);
 router.post('/products',  commonController.getProductByCatID);
 router.post('/all-products', commonController.getAllProducts);
 router.post('/list-coupons', commonController.listAllCoupons);
+router.post('/search-product', commonController.searchProductByName);
+
 
 module.exports = router;

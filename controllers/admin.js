@@ -135,21 +135,6 @@ const deleteProduct = async (req, res) => {
 
 }
 
-const getQueries = async (req, res) => {
-    try {
-        const queries = await Query.find();
-
-        if (!queries) {
-            return res.send(error(404, 'No queries found'));
-        }
-
-        return res.send(success(200, queries));
-    } catch (err) {
-        return res.send(error(404, 'No queries found'));
-    }
-
-}
-
 const createCoupon = async (req, res) => {
     try {
         const { code, discountType, discountAmount, validFrom, validUntil } = req.body;
@@ -582,7 +567,6 @@ module.exports = {
     createCategory,
     createProduct,
     deleteProduct,
-    getQueries,
     createCoupon,
     updateOrderStatus,
     updateTrending,

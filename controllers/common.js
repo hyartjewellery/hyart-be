@@ -119,4 +119,19 @@ const listAllCoupons = async (req, res) => {
     }
 };
 
-module.exports = {getAllCategory, getProductByID, getProductByCatID, getAllProducts, listAllCoupons};
+const searchProductByName = async (req, res) => {
+
+    const { query } = req.body;
+    try {
+
+        const products = await Product.find({ name: { $regex: query, $options: 'i' } , archive: false});
+        return res.send(success(200, products));
+
+    } catch (err) {
+        return res.send(error(404, err.message));
+    }
+
+}
+
+
+module.exports = {getAllCategory, getProductByID, getProductByCatID, getAllProducts, listAllCoupons, searchProductByName};
