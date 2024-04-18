@@ -415,7 +415,6 @@ const getOrders = async (req, res) => {
     }
 }
 
-
 module.exports = {
     addToWishlist,
     getWishList,

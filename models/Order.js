@@ -55,7 +55,8 @@ const orderSchema = new mongoose.Schema({
     default: 0
   },
   trackingId:{
-    type: String
+    type: String,
+    default: ''
   }
 });
 
