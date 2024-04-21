@@ -143,13 +143,12 @@ const createCoupon = async (req, res) => {
         if (existingCoupon) {
             return res.send(error(400, 'Coupon already exists'));
         }
-        console.log("CROSS")
+       
 
         if (discountAmount > 50){
             return res.send(error(400, 'Discount amount cannot be more than 50%'));
         }
 
-        console.log("CROSS2")
         const coupon = await Coupon.create({
             code,
             discountType,
@@ -157,8 +156,6 @@ const createCoupon = async (req, res) => {
             validFrom,
             validUntil,
         });
-
-        console.log("CROSS3", coupon)
 
         return res.send(success(201, coupon));
     } catch (err) {
@@ -170,8 +167,6 @@ const createCoupon = async (req, res) => {
 const updateOrderStatus = async (req, res) => {
     try {
         const { order_id, status, trackingID } = req.body;
-
-        console.log("ORDERID", order_id, status, trackingID);
 
         if (!order_id || !status) {
             return res.send(error(400, 'Please provide order id and status'));
@@ -218,8 +213,6 @@ const updateOrderStatus = async (req, res) => {
             `Order ${status.charAt(0).toUpperCase() + status.slice(1)}`,
             orderStatus(user.name, trackingID, order._id, statusMessage, productDetails.join('\n'))
         );
-
-        console.log("MAIL SENT");
         return res.send(success(200, order));
     } catch (err) {
         console.error(err);

@@ -22,7 +22,6 @@ async function sendVerificationEmail(email, otp) {
 
     try {
         const mailResponse = await mailSender(email, 'Verification Email', emailTemplate(otp));
-        console.log(mailResponse);
 
     } catch(e){
         console.log(e);
