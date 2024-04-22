@@ -57,6 +57,10 @@ const orderSchema = new mongoose.Schema({
   trackingId:{
     type: String,
     default: ''
+  },
+  paymentMethod:{
+    type: String,
+    enum: ['COD', 'Online'],
   }
 });
 

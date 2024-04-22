@@ -361,7 +361,8 @@ const placeCODOrder = async (req, res) => {
             status: 'confirmed',
             products: products.map(({ product_id, quantity }) => ({ product_id, quantity })),
             couponApplied: couponApplied,
-            couponDiscountAmount: couponDiscountAmount
+            couponDiscountAmount: couponDiscountAmount,
+            paymentMethod: 'COD',
         };
 
 
@@ -402,7 +403,7 @@ const getOrders = async (req, res) => {
     try {
         const user_id = req.user._id;
 
-        const orders = await Order.find({ user_id: user_id }).populate({
+        const orders = await Order.find({ user_id: user_id, status: 'confirmed' }).populate({
             path: 'products.product_id',
             model: 'Product',
             select: 'name price image'
