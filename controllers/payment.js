@@ -42,9 +42,8 @@ const paymentVerification = async (req, res) => {
 
         const order = await Order.findOneAndUpdate(
             { _id: receipt },
-            { $set: { status: 'confirmed' } },
-            { new: true },
-            {paymentMethod: "Online"}
+            { $set: { status: 'confirmed', paymentMethod: "Online" } },
+            { new: true }
         );
 
       if (!user.orders) {

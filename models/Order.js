@@ -14,7 +14,6 @@ const orderSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'],
-    // default: 'pending'
   },
   paymentId: {
     type: String
@@ -29,10 +28,6 @@ const orderSchema = new mongoose.Schema({
         type: Number,
         required: true
       },
-      // priceAtPurchase: {
-      //   type: Number,
-      //   required: true
-      // }
     }
   ],
   payment : {
@@ -65,5 +60,4 @@ const orderSchema = new mongoose.Schema({
 });
 
 const Order = mongoose.model('Order', orderSchema);
-
 module.exports = Order;
