@@ -10,11 +10,8 @@ const { error, success } = require('../utils/responseWrapper');
 const mailSender = require('../utils/mailSender');
 const orderStatus = require('../utils/template/orderStatus');
 
-
 const createCategory = async (req, res) => {
-
     try {
-
         const { name, description } = req.body;
 
         if (!name) {
@@ -65,7 +62,6 @@ const createProduct = async (req, res) => {
 };
 
 const updateProduct = async (req, res) => {
-
     try {
 
         const { product_id, name, description, price, image, quantity, trending } = req.body;
@@ -120,7 +116,6 @@ const updateProduct = async (req, res) => {
 }
 
 const deleteProduct = async (req, res) => {
-
     try {
 
         const { product_id } = req.body;
@@ -183,9 +178,10 @@ const updateOrderStatus = async (req, res) => {
         }
 
         if (req.body.status === 'cancelled') {
-
-             await Payment.findByIdAndUpdate({ order_id: order_id }, { status: 'failed' });
-
+            await Payment.updateMany(
+                { order_id: order_id },
+                { $set: { status: 'failed' } }
+            );
         }
 
         const order = await Order.findById(order_id);
@@ -560,7 +556,6 @@ const deleteCoupon = async (req, res) => {
     }
 
 }
-
 
 module.exports = {
     createCategory,
