@@ -403,7 +403,7 @@ const getOrders = async (req, res) => {
     try {
         const user_id = req.user._id;
 
-        const orders = await Order.find({ user_id: user_id,  status: { $in: ['confirmed', 'shipped', 'delivered'] } }).populate({
+        const orders = await Order.find({ user_id: user_id,  status: { $in: ['confirmed', 'shipped', 'delivered', 'cancelled'] } }).populate({
             path: 'products.product_id',
             model: 'Product',
             select: 'name price image'
