@@ -20,7 +20,10 @@ app.use(express.json({limit: "10mb"}));
 app.use(morgan('common'));
 app.use(cookieParser());
 
-let origin = 'https://662821c3b18c2814f18bc2f7--papaya-cat-8bdd21.netlify.app/#';
+let origin = 'http://localhost:3000';
+if (process.env.NODE_ENV === 'production') {
+    origin = process.env.CORS_ORIGIN;
+}
 
 
 app.use(cors({
