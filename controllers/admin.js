@@ -182,6 +182,12 @@ const updateOrderStatus = async (req, res) => {
             }
         }
 
+        if (req.body.status === 'cancelled') {
+
+             await Payment.findByIdAndUpdate(order_id, { status: 'failed' });
+
+        }
+
         const order = await Order.findById(order_id);
 
         if (!order) {
