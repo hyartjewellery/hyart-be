@@ -4,7 +4,6 @@ const { error, success } = require('../utils/responseWrapper');
 const User = require('../models/User');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
-const Coupon = require('../models/Coupon');
 
 const paymentVerification = async (req, res) => {
     try {
