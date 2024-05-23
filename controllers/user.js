@@ -53,8 +53,6 @@ const placeOrder = async (req, res) => {
             totalAmount += product.price * quantity;
         }
 
-
-
         let discountAmount = 0;
         let couponApplied = false;
         let couponDiscountAmount = 0;
@@ -105,9 +103,7 @@ const placeOrder = async (req, res) => {
 
         const createdOrder = await Order.create(order);
 
-        for (const { product_id, quantity } of products) {
-            await Product.findByIdAndUpdate(product_id, { $inc: { quantity: -quantity } });
-        }
+      
 
         const razorpayOrder = await razorpay.orders.create({
             amount: finalAmount * 100,

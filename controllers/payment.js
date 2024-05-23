@@ -3,11 +3,13 @@ const crypto = require('crypto');
 const { error, success } = require('../utils/responseWrapper');
 const User = require('../models/User');
 const Order = require('../models/Order');
+const Product = require('../models/Product');
+const Coupon = require('../models/Coupon');
 
 const paymentVerification = async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
-        const { orderCreationId, razorpay_order_id, razorpay_payment_id, razorpay_signature, amount, receipt , paymentMethod } = req.body;
+        const { orderCreationId, razorpay_order_id, razorpay_payment_id, razorpay_signature, amount, receipt, paymentMethod, products  } = req.body;
         const body = orderCreationId + "|" + razorpay_payment_id;
 
         const expectedSignature = crypto
@@ -37,7 +39,7 @@ const paymentVerification = async (req, res) => {
                 status: 'successful'
             });
 
-            payment = new_payment; 
+            payment = new_payment;
         }
 
         const order = await Order.findOneAndUpdate(
@@ -46,13 +48,26 @@ const paymentVerification = async (req, res) => {
             { new: true }
         );
 
-      if (!user.orders) {
+        for (const { product_id, quantity } of products) {
+
+            const product = await Product.findById(product_id);
+
+            if (!product) {
+                return res.status(404).send(error(404, 'Product not found'));
+            }
+
+            product.quantity -= quantity;
+
+            await product.save();
+        }
+
+        if (!user.orders) {
             user.orders = [];
         }
 
-        
+
         user.orders.push(order._id);
-        
+
         await user.save();
 
 

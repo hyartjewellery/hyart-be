@@ -58,20 +58,16 @@ const sendOtp = async (req, res) => {
 
 const register = async (req, res) => {
     try {
+
         const { name, email, password, confirmPassword, otp, phoneNumber, role } = req.body;
         
-
         if (!name || !email || !password || !confirmPassword || !phoneNumber || !otp) {
             return res.send(error(400, 'All fields are required'));
         }
 
-   
-
         if (password !== confirmPassword) {
             return res.send(error(400, 'Passwords do not match'));
         }
-
-    
 
         const oldUser = await User.findOne({ email });
 
@@ -103,8 +99,6 @@ const register = async (req, res) => {
             return res.send(error(403, 'Invalid OTP'));
         }
 
-   
-
         const hashedPassword = await bcrypt.hash(password, 10);
         const hashedConfirmPassword = await bcrypt.hash(confirmPassword, 10);
 
@@ -118,11 +112,7 @@ const register = async (req, res) => {
             role
         })
 
-     
-
         await mailSender(user.email, 'Welcome to our platform', welcomeEmail(user.name));
-
-        
 
         user.password = undefined;
         user.confirmPassword = undefined;
