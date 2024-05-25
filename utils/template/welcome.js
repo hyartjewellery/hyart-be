@@ -69,7 +69,7 @@ const welcomeTemplate = (name) => {
 				<p>We're thrilled to have you join our community. Start exploring and enjoy all the benefits our platform has to offer. Happy exploring!</p>
 			</div>
 			<div class="support">If you have any questions or need assistance, please feel free to reach out to us at <a
-					href="mailto:satyam19arya@gmail.com">satyam19arya@gmail.com</a>. We are here to help!</div>
+					href="mailto:hyart267@gmail.com">hyart267@gmail.com</a>. We are here to help!</div>
 		</div>
 	</body>
 	</html>`;

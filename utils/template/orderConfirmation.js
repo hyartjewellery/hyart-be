@@ -24,7 +24,7 @@ const orderConfirmationTemplate = (customerName, orderId, orderDate, totalAmount
 				<p>You will receive a confirmation email once your order has been shipped. Thank you for shopping with us!</p>
 			</div>
 			<div class="support">If you have any questions or need assistance, please feel free to contact us at <a
-					href="mailto:admin@example.com">admin@example.com</a>. We're here to help!</div>
+					href="mailto:hyart267@gmail.com">hyart267@gmail.com</a>. We're here to help!</div>
 		</div>
 	</body>
 	</html>`;

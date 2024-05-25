@@ -71,7 +71,7 @@ const orderStatusTemplate = (customerName,trackingID, orderId, statusMessage, pr
                 }
                 <p>Thank you for choosing us!</p>
             </div>
-            <div class="support">If you have any questions or need assistance, please feel free to contact us at <a href="mailto:anandsupragya@gmail.com">anandsupragya@gmail.com</a>. We're here to help!</div>
+            <div class="support">If you have any questions or need assistance, please feel free to contact us at <a href="mailto:hyart267@gmail.com">hyart267@gmail.com</a>. We're here to help!</div>
         </div>
     </body>
     </html>
