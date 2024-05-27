@@ -342,7 +342,7 @@ const updatePassword = async (req, res) => {
         await mailSender(
             userDetails.email,
             "Password updated successfully",
-            passwordUpdated(userDetails.email, `${userDetails.firstName} ${userDetails.lastName}`)
+            passwordUpdated(userDetails.email, `${userDetails.name}`)
         )
 
         res.send(success(200, 'Password updated successfully'));

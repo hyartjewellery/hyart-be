@@ -10,7 +10,7 @@ router.post('/remove-from-wishlist',protect.protect, checkPermission(["user"]), 
 router.post('/get-wishlist',protect.protect, checkPermission(["user"]), userController.getWishList);
 router.post('/place-order', protect.protect, checkPermission(["user"]), userController.placeOrder); 
 router.post('/paymentVerification',protect.protect, checkPermission(["user"]), paymentController.paymentVerification);
-router.post('/contact-us',protect.protect, checkPermission(["user"]), userController.contactUs);
+router.post('/contact-us', userController.contactUs);
 router.post('/get-order-status',protect.protect, checkPermission(["user"]), userController.getOrderStatus);
 router.post('/place-cod-order',protect.protect, checkPermission(["user"]), userController.placeCODOrder);
 router.post('/get-orders',protect.protect, checkPermission(["user"]), userController.getOrders);

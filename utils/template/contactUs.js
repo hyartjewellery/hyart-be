@@ -1,5 +1,5 @@
-const contactUsTemplate = (email, user_name,subject, message) => {
-	return `<!DOCTYPE html>
+const contactUsTemplate = (email, subject, message) => {
+    return `<!DOCTYPE html>
     <html>
     <head>
         <meta charset="UTF-8">
@@ -7,7 +7,7 @@ const contactUsTemplate = (email, user_name,subject, message) => {
         <style>
             body {
                 background-color: #f4f4f4;
-                font-family: Arial, sans-serif;
+                font-family: 'Helvetica Neue', Arial, sans-serif;
                 font-size: 16px;
                 line-height: 1.6;
                 color: #333;
@@ -17,43 +17,74 @@ const contactUsTemplate = (email, user_name,subject, message) => {
     
             .container {
                 max-width: 600px;
-                margin: 0 auto;
+                margin: 40px auto;
                 padding: 20px;
                 text-align: left;
                 background-color: #fff;
-                border-radius: 5px;
-                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                border: 1px solid #ddd;
             }
     
-            .subject {
+            .header {
                 font-size: 24px;
                 font-weight: bold;
                 margin-bottom: 20px;
+                color: #0046ad;
+                text-align: center;
+            }
+    
+            .section-heading {
+                font-size: 18px;
+                font-weight: bold;
+                margin-top: 20px;
+                margin-bottom: 10px;
+                color: #0046ad;
+            }
+    
+            .subject {
+                font-size: 20px;
+                font-weight: bold;
+                margin-bottom: 10px;
                 color: #333;
             }
     
             .message {
-                font-size: 18px;
+                font-size: 16px;
                 margin-bottom: 20px;
-                color: #666;
+                color: #555;
             }
     
             .sender-info {
-                font-size: 16px;
+                font-size: 14px;
                 color: #888;
+                margin-top: 20px;
+                border-top: 1px solid #ddd;
+                padding-top: 10px;
+            }
+    
+            .footer {
+                font-size: 12px;
+                color: #aaa;
+                text-align: center;
                 margin-top: 20px;
             }
         </style>
     </head>
     <body>
     <div class="container">
+        <div class="header">Contact Us Form Submission</div>
+        <div class="section-heading">Subject</div>
         <div class="subject">${subject}</div>
+        <div class="section-heading">Message</div>
         <div class="message">
             <p>${message}</p>
         </div>
         <div class="sender-info">
-            <p>From: ${user_name}</p>
-            <p>Email: ${email}</p>
+            <p><strong>Email:</strong> ${email}</p>
+        </div>
+        <div class="footer">
+            <p>This email was generated automatically. Please do not reply.</p>
         </div>
     </div>
     </body>

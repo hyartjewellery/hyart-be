@@ -1,10 +1,8 @@
-const Category = require('../models/Category');
 const Product = require('../models/Product');
 const User = require('../models/User');
 const Razorpay = require('razorpay');
 const Order = require('../models/Order');
 const Payment = require('../models/Payment');
-const Query = require('../models/Query');
 const Coupon = require('../models/Coupon');
 const userConfirmationTemplate = require('../utils/template/userConfirmation');
 const contactUsTemplate = require('../utils/template/contactUs');
@@ -119,6 +117,9 @@ const placeOrder = async (req, res) => {
             paymentMethod: 'razorpay',
         });
 
+        console.log("Sex", user);
+        console.log(user.email);
+
         await mailSender(
             user.email,
             'Order Confirmed',
@@ -127,7 +128,11 @@ const placeOrder = async (req, res) => {
                 createdOrder._id,
                 new Date().toLocaleDateString(),
                 finalAmount,
-                user.location.address
+                user.location.address,
+                user.location.city,
+                user.location.pincode,
+                user.location.state,
+                user.location.country
             )
         );
 
@@ -209,7 +214,7 @@ const removeFromWishList = async (req, res, next) => {
     }
 }
 
-const contactUs = async (req, res, next) => {
+const contactUs = async (req, res) => {
     try {
         const { email, subject, message } = req.body;
         const admin = process.env.MAIL_USERNAME;
@@ -221,33 +226,11 @@ const contactUs = async (req, res, next) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             return res.send(error(404, 'Invalid email'));
-
         }
 
-        const user_id = req.user._id;
-        const user = await User.findById(user_id);
-        const user_name = user.name;
-
-        if (!user) {
-            return res.send(error(404, 'User not found'));
-        }
-
-        if (email != user.email) {
-            return res.send(error(404, 'Email does not match with the logged in user'));
-        }
-        const name = req.user.name;
-        const userConfirmationBody = userConfirmationTemplate(name);
+        const userConfirmationBody = userConfirmationTemplate(email);
         await mailSender(email, 'Contact Form Submission Confirmation', userConfirmationBody);
-        await mailSender(admin, 'User Query', contactUsTemplate(email, user_name, subject, message));;
-
-        const query = {
-            name: user_name,
-            email: email,
-            subject: subject,
-            message: message
-        };
-
-        await Query.create(query);
+        await mailSender(admin, 'User Query', contactUsTemplate(email, subject, message));;
 
         return res.send(success(200, 'Query submitted successfully'));
     } catch (err) {
@@ -383,7 +366,11 @@ const placeCODOrder = async (req, res) => {
                 createdOrder._id,
                 new Date().toLocaleDateString(),
                 finalAmount,
-                user.location.address
+                user.location.address,
+                user.location.city,
+                user.location.pincode,
+                user.location.state,
+                user.location.country
             )
         );
 
